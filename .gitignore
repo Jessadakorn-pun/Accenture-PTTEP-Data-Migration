@@ -1,2 +1,16 @@
 info.yaml
 .env
+.venv
+task
+.claude
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Excel files
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb

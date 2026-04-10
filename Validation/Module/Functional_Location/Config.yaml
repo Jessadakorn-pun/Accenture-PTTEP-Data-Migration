@@ -1,0 +1,173 @@
+MODULE: "Functional Location"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Functional_Location/Template_Functional_Location.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "Functional Location"
+MAPPING_PATH:         "Metadata/Mapping/KDS_Functional_Location.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "validated_functional_location.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+# ─── Jobs ────────────────────────────────────────────────────────────────────
+# Available SAP tables: IFLOT, IFLOTX, ILOA, IHPA, IFLOS, JEST, STXH, STXL
+JOBS:
+  - NAME:           "Functional Location (TH,MM)"
+    SHEET_KEYWORD:  "Functional Location (TH,MM)"
+    DS_TABLE:       
+      - "IFLOT"
+      - "ILOA"                     # S4 Target Database Table Name filter
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["TPLMA_TGT", "TPLNR_TGT"]
+
+    FIXED_VALUE_FIELDS: []
+
+    PROHIBITED_NEWLINE_FIELDS:
+      - "PLTXT_TGT"
+
+    NON_BLANK_OPTIONAL_FIELDS: []
+
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+
+    SAME_SHEET_REFERENCES:
+      - source_column: "TPLMA_TGT"    # value in this column (child)
+        target_column: "TPLNR_TGT"     # need to have value in this column (parent)
+
+    CROSS_SHEET_REFERENCES: []
+
+    # kds_sheet      : sheet name in KDS_Mapping.xlsx
+    # kds_field_name : column name (row 1) in that KDS sheet containing allowed values
+    # source_columns : template column(s) whose values must exist in kds_field_name
+    KDS_REFERENCES:
+      - kds_sheet: "T370S"
+        kds_columns:
+          - "TPLKZ_TGT"
+        source_columns:
+          - "TPLKZ_TGT"
+        check_mapping:
+          kds_src_columns:           # columns ใน KDS sheet ฝั่ง AS-IS
+            - "TPLKZ_SRC"
+          template_src_columns:      # columns ใน template ฝั่ง AS-IS
+            - "TPLKZ_SRC"
+      
+      - kds_sheet: "T370F"
+        kds_columns:
+          - "FLTYP_TGT"
+        source_columns:
+          - "FLTYP_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "FLTYP_SRC"
+          template_src_columns:      
+            - "FLTYP_SRC"
+      
+      - kds_sheet: "T370K"
+        kds_columns:
+          - "EQART_TGT"
+        source_columns:
+          - "EQART_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "EQART_SRC"
+          template_src_columns:      
+            - "EQART_SRC"
+
+      - kds_sheet: "T370C"
+        kds_columns:
+          - "ABCKZ_TGT"
+        source_columns:
+          - "ABCKZ_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "ABCKZ_SRC"
+          template_src_columns:      
+            - "ABCKZ_SRC"
+      
+      - kds_sheet: "T399I"
+        kds_columns:
+          - "IWERK_TGT"
+        source_columns:
+          - "IWERK_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "IWERK_SRC"
+          template_src_columns:      
+            - "IWERK_SRC"
+      
+      - kds_sheet: "T024I"
+        kds_columns:
+          - "IWERK_TGT"
+          - "INGRP_TGT"
+        source_columns:
+          - "IWERK_TGT"
+          - "INGRP_TGT"
+        check_mapping:
+          kds_src_columns:           # columns ใน KDS sheet ฝั่ง AS-IS
+            - "IWERK_SRC"
+            - "INGRP_SRC"
+          template_src_columns:      # columns ใน template ฝั่ง AS-IS
+            - "IWERK_SRC"
+            - "INGRP_SRC"
+      
+      - kds_sheet: "T352B"
+        kds_columns:
+          - "RBNR_TGT"
+        source_columns:
+          - "RBNR_TGT"
+        check_mapping:
+          kds_src_columns:           # columns ใน KDS sheet ฝั่ง AS-IS
+            - "RBNR_SRC"
+          template_src_columns:      # columns ใน template ฝั่ง AS-IS
+            - "RBNR_SRC"
+
+    CUSTOM_VALIDATIONS:
+      - check_ad_date:
+        - DATAB_TGT      # ระบุ column ที่ต้องการตรวจ format วันที่ DD.MM.YYYY
+        - ANSDT_TGT
+      - check_ad_year:
+        - BAUJJ_TGT
+      - check_mm:
+        - BAUMM_TGT
+
+
+
+
+
+
+
+
+
+
+
+  # - NAME:           "Individual Object Status(TH,MM)"
+  #   SHEET_KEYWORD:  "Individual Object Status(TH,MM)"
+  #   DS_TABLE:       "ILOA"
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:
+  #     - ["TPLNR_TGT"]
+
+  #   FIXED_VALUE_FIELDS: []
+  #   PROHIBITED_NEWLINE_FIELDS: []
+  #   NON_BLANK_OPTIONAL_FIELDS: []
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES: []
+  #   CROSS_SHEET_REFERENCES: []
+  #   KDS_REFERENCES: []
+  #   CUSTOM_VALIDATIONS: []

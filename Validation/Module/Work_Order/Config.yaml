@@ -1,0 +1,140 @@
+MODULE: "Work Order"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Work_Order/Template_Work_Order.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "Work Order"
+MAPPING_PATH:         "Metadata/Mapping/KDS_Mapping.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "validated_work_order.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+# Sheet inside the template that lists field names to skip
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+# Column-name suffixes that are automatically excluded from validation.
+# Columns ending with any of these will not be checked.
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+# ─── Jobs ────────────────────────────────────────────────────────────────────
+# Each job maps to one worksheet in the template.
+JOBS:
+  - NAME:           "Maintenance Order Header"
+    SHEET_KEYWORD:  "Maintenance Order Header"  # matched as substring (case-insensitive)
+    DS_TABLE:       "AFIH"                      # S4 Target Database Table Name filter
+
+    # Which validations to run (basic ones)
+    VALIDATIONS:
+      - mandatory    # check mandatory fields are filled
+      - length       # check max-length and DATS/TIMS format
+
+    # Composite primary keys — each inner list is one PK combination
+    PRIMARY_KEYS:
+      - ["AUFNR_TGT"]
+
+    # Fixed allowed-values checks
+    # Format: {column: COLUMN_NAME, allowed_values: [VAL1, VAL2, ...]}
+    FIXED_VALUE_FIELDS:
+      - column: "IWERK_TGT"
+        allowed_values:
+          - "4410"
+          - "4411"
+
+    # Fields that must not contain newline / carriage-return characters
+    PROHIBITED_NEWLINE_FIELDS: []
+
+    # Optional fields that ALL must have a value (each column checked independently)
+    NON_BLANK_OPTIONAL_FIELDS:
+      - "ILOAN_TGT"
+
+    # Optional field groups where at LEAST ONE per group must have a value
+    # Format: each item is a list of column names forming one group
+    NON_BLANK_OPTIONAL_ANY_FIELDS:
+      - ['ANLBD_TGT', 'ANLVD_TGT', 'ANLBZ_TGT']
+
+    # Same-sheet column references
+    # Format: {source_column: COL_A, target_column: COL_B}
+    SAME_SHEET_REFERENCES:
+      - source_column: "AUFNRC_TGT"    # value in this column (child)
+        target_column: "AUFNR_TGT"     # need to have value in this column (parent)
+
+    # Cross-sheet references (validated after all jobs are loaded)
+    # Format: {source_columns: [...], target_sheet_keyword: "...", target_columns: [...]}
+    CROSS_SHEET_REFERENCES:
+      # - source_columns:       ["AUFNR_TGT"]           # column ใน sheet นี้ (source)
+      #   target_sheet_keyword: "Order Master Data"      # ชื่อ sheet ปลายทาง (substring match)
+      #   target_columns:       ["AUFNR_TGT"]            # column ใน sheet ปลายทาง
+
+      # # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      # - source_columns:       ["AUFNR_TGT", "VORNR_TGT"]
+      #   target_sheet_keyword: "Maintenance Operation"
+      #   target_columns:       ["AUFNR_TGT", "VORNR_TGT"]
+
+    # KDS mapping reference checks
+    # kds_sheet      : sheet name in KDS_Mapping.xlsx
+    # kds_field_name : column name (row 1) in that KDS sheet containing allowed values
+    # source_columns : template column(s) whose values must exist in kds_field_name
+    KDS_REFERENCES:
+      - kds_sheet:       "DT03"
+        kds_field_name:  "ARTPR_TOBE"
+        source_columns:  ["ARTPR_TGT"]
+
+    # Custom (business-logic) validators
+    # Single-column validators  → list of column names
+    # Multi-column validators   → list of {param_key: column_name} dicts
+    CUSTOM_VALIDATIONS: []
+      # - check_ad_date:
+      #     - ADDAT_TGT    # PM Order: Reference Date
+      #     - DATAN_TGT    # Date of Technical Inspection
+      #     - ANLBD_TGT    # Date until system available
+      #     - ANLVD_TGT    # Date from which system available
+      #     - HISDA_TGT    # PM request: History date
+
+      # - check_between_time:
+      #     - start_date: ANLBD_TGT   # system unavailable from
+      #       start_time: ANLBZ_TGT   # time unavailable from
+      #       end_date:   ANLVD_TGT   # system available from
+      #       end_time:   ANLVZ_TGT   # time available from
+
+
+  - NAME:           "Order Master Data"
+    SHEET_KEYWORD:  "Order Master Data"
+    DS_TABLE:       "AUFK"                      # S4 Target Database Table Name filter
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["AUFNR_TGT", "AUART_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "SOWRK_TGT"
+        allowed_values:
+          - "MY01"
+          - "MY02"
+      - column: "WERKS_TGT"
+        allowed_values:
+          - "MY01"
+          - "MY02"
+
+    PROHIBITED_NEWLINE_FIELDS:
+      - "KTEXT_TGT"
+
+    NON_BLANK_OPTIONAL_FIELDS:
+      - "PHAS2_TGT"
+
+    NON_BLANK_OPTIONAL_ANY_FIELDS:
+      - ["PDAT1_TGT", "PDAT2_TGT", "PDAT3_TGT"]
+
+    SAME_SHEET_REFERENCES: []
+
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES: []
+
+    CUSTOM_VALIDATIONS: []
