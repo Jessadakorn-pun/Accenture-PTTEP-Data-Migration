@@ -45,93 +45,341 @@ Validation/
 
 ---
 
-## Validation Logic
+## Validation Logic & Test Cases
 
 Each module runs a sequence of checks. Results are written as `Check *` columns appended to the right of each template sheet.
 
+Cell results use these symbols:
+- `✅` — passed
+- `❌` — failed
+- `⚠️` — warning (cannot verify, manual review required)
+
+> **Note:** `⚠️` is treated as non-pass — the `Check Overall Validation Result` will be `❌` if any column shows `⚠️`.
+
+---
+
 ### 1. Mandatory & Length (`mandatory`, `length`)
 
-Reads `Field Requirement` and `S4 Target Data Length` from `DataStandardList.xlsx`.
+Reads `Field Requirement` and `S4 Target Data Length` from `DataStandardList.xlsx`, filtered by `DS_TABLE`.
 
-- **Mandatory**: if a field is marked `M-Mandatory` and the cell is blank → `❌ FIELD_TGT: Missing mandatory value`
-- **Length**: if cell value length exceeds the allowed max → `❌ FIELD_TGT: length N exceeds max M`
-- **DS_TABLE**: filters the Data Standard to rows matching the specified SAP table(s). Accepts a single string or a list for templates built from JOINs.
+- **DS_TABLE**: accepts a single string `"AFIH"` or a list `["AFIH", "AUFK"]` for templates built from JOINs
+- **Mandatory**: field marked `M-Mandatory` in Data Standard
+- **Blank detection**: empty string, `NaN`, `None`, `"nan"`, `"none"` all count as blank
+
+**Mandatory test cases:**
+
+| Cell Value | Mandatory in DS | Result |
+|---|---|---|
+| `""` (blank) | Yes | `❌ FIELD_TGT: Missing mandatory value` |
+| `"ABC"` | Yes | `✅` |
+| `""` (blank) | No | `✅` (optional field, skip) |
+| `"ABC"` | No | `✅` |
+
+**Length test cases:**
+
+| Cell Value | Max Length | Result |
+|---|---|---|
+| `"ABC"` | 5 | `✅` |
+| `"ABCDEF"` | 5 | `❌ FIELD_TGT: length 6 exceeds max 5 (value='ABCDEF')` |
+| `""` (blank) | 5 | `✅` (blank skips length check) |
+
+---
 
 ### 2. Primary Key (`PRIMARY_KEYS`)
 
-Checks that the combination of key columns is unique and non-blank across all rows.
+Checks that the combination of key columns is **unique** and **non-blank** across all rows.
 
-- Duplicate key → `❌ Duplicate PK: val1 | val2`
-- Blank key → `❌ Missing PK value(s)`
+**Test cases:**
+
+| AUFNR_TGT | VORNR_TGT | Result |
+|---|---|---|
+| `1000` | `0010` | `✅` |
+| `1000` | `0020` | `✅` |
+| `1000` | `0010` | `❌ Duplicate PK: 1000 \| 0010` |
+| `""` | `0010` | `❌ Missing PK value(s)` |
+| `""` | `""` | `❌ Missing PK value(s)` |
+
+---
 
 ### 3. Fixed Values (`FIXED_VALUE_FIELDS`)
 
-Checks that a column only contains values from a predefined allowed list.
+Checks that a column only contains values from a predefined allowed list. Blank cells are skipped.
 
-- Invalid value → `❌ FIELD_TGT: value 'X' not in allowed list ['A', 'B']`
+**Config:** `allowed_values: ["4410", "4411"]`
+
+| Cell Value | Result |
+|---|---|
+| `"4410"` | `✅` |
+| `"4411"` | `✅` |
+| `""` (blank) | `✅` (skip) |
+| `"4412"` | `❌ FIELD_TGT: value '4412' not in allowed list ['4410', '4411']` |
+| `"4410 "` (trailing space) | `❌` (trimmed before check, but `"4410 "` → `"4410"` → `✅`) |
+
+---
 
 ### 4. Prohibited Newlines (`PROHIBITED_NEWLINE_FIELDS`)
 
-Checks that specified columns do not contain `\n` or `\r` characters.
+Checks that specified columns do not contain `\n` (newline) or `\r` (carriage return) characters.
 
-- Found → `❌ FIELD_TGT: Newline character not allowed`
+| Cell Value | Result |
+|---|---|
+| `"Normal text"` | `✅` |
+| `"Line1\nLine2"` | `❌ FIELD_TGT: Newline character not allowed` |
+| `"Line1\rLine2"` | `❌ FIELD_TGT: Newline character not allowed` |
+| `""` (blank) | `✅` |
+
+---
 
 ### 5. Non-Blank Optional — All (`NON_BLANK_OPTIONAL_FIELDS`)
 
-Each listed column must have a value (all checked independently).
+Each listed column **must** have a value. Checked independently.
 
-- Blank → `❌ FIELD_TGT: missing value`
+| Cell Value | Result |
+|---|---|
+| `"ABC"` | `✅` |
+| `""` (blank) | `❌ FIELD_TGT: missing value` |
+| `"0"` | `✅` (non-empty string passes) |
+
+---
 
 ### 6. Non-Blank Optional — Any (`NON_BLANK_OPTIONAL_ANY_FIELDS`)
 
 Groups of columns where **at least one** per group must have a value.
 
-- All blank in group → `❌ COL_A and COL_B: must be filled at least 1 column`
+**Config:** `- ["ANLBD_TGT", "ANLVD_TGT", "ANLBZ_TGT"]`
+
+| ANLBD_TGT | ANLVD_TGT | ANLBZ_TGT | Result |
+|---|---|---|---|
+| `"20251001"` | `""` | `""` | `✅` (at least one filled) |
+| `""` | `""` | `"10:00:00"` | `✅` |
+| `""` | `""` | `""` | `❌ ANLBD_TGT and ANLVD_TGT and ANLBZ_TGT: must be filled at least 1 column` |
+
+---
 
 ### 7. Same-Sheet Reference (`SAME_SHEET_REFERENCES`)
 
-Checks that a value in a **child** column exists somewhere in a **parent** column on the same sheet.
+Checks that a value in a **child** column exists somewhere in a **parent** column on the same sheet. Blank child values are skipped.
 
-- Not found → `❌ CHILD_TGT 'val' not found in PARENT_TGT`
+**Config:** `source_column: "AUFNRC_TGT"`, `target_column: "AUFNR_TGT"`
+
+| AUFNRC_TGT (child) | Values in AUFNR_TGT (parent) | Result |
+|---|---|---|
+| `"1000"` | `["1000", "1001", "1002"]` | `✅` |
+| `""` (blank) | any | `✅` (skip) |
+| `"9999"` | `["1000", "1001", "1002"]` | `❌ AUFNRC_TGT '9999' not found in AUFNR_TGT` |
+
+---
 
 ### 8. Cross-Sheet Reference (`CROSS_SHEET_REFERENCES`)
 
-Checks that a key combination exists in another worksheet (runs after all jobs complete).
+Checks that a key combination exists in another worksheet. Runs **after all jobs** are loaded. Blank source rows are skipped.
 
-- Not found → `❌ ('val1', 'val2') not found in sheet 'Sheet Name'`
+**Config:** `source_columns: ["AUFNR_TGT"]`, `target_sheet_keyword: "Order Master Data"`, `target_columns: ["AUFNR_TGT"]`
+
+| Source value | Target sheet has | Result |
+|---|---|---|
+| `"1000"` | `["1000", "1001"]` | `✅` |
+| `""` (blank) | any | `✅` (skip) |
+| `"9999"` | `["1000", "1001"]` | `❌ ('9999',) not found in sheet 'Order Master Data'` |
+
+**Composite key:**
+
+| AUFNR_TGT | VORNR_TGT | Target has | Result |
+|---|---|---|---|
+| `"1000"` | `"0010"` | `(1000, 0010)` | `✅` |
+| `"1000"` | `"0099"` | only `(1000, 0010)` | `❌ ('1000', '0099') not found in sheet '...'` |
+
+---
 
 ### 9. KDS Mapping Reference (`KDS_REFERENCES`)
 
 Checks that template values exist in an allowed-value table in `KDS_Mapping.xlsx`.
 
-Supports:
-- **Single column**: one template column vs one KDS column
-- **Composite key**: multiple template columns must match as a tuple in KDS
+#### 9a. Single column
 
-Optional **SRC→TGT mapping check** (`check_mapping`):
-- Looks up the AS-IS (SRC) values in KDS and verifies the TO-BE (TGT) mapping is correct
-- SRC blank + TGT has value → `⚠️ SRC blank — please verify mapping in KDS`
-- SRC not in KDS → `❌ AS-IS not found in KDS`
-- Wrong mapping → `❌ Wrong mapping: FIELD_TGT: expected 'X' got 'Y'`
+**Config:** `kds_field_name: "ARTPR_TOBE"`, `source_columns: ["ARTPR_TGT"]`
+
+KDS sheet `"DT03"`:
+
+| ARTPR_TOBE |
+|---|
+| PM01 |
+| PM02 |
+
+| ARTPR_TGT | Result |
+|---|---|
+| `"PM01"` | `✅` |
+| `"PM03"` | `❌ ARTPR_TGT: 'PM03' not found in KDS 'DT03'` |
+| `""` (blank) | `✅` (skip) |
+
+#### 9b. Composite key
+
+**Config:** `kds_columns: ["PLANT_TOBE", "TYPE_TOBE"]`, `source_columns: ["IWERK_TGT", "ARTPR_TGT"]`
+
+KDS sheet:
+
+| PLANT_TOBE | TYPE_TOBE |
+|---|---|
+| 4410 | PM01 |
+| 4410 | PM02 |
+| 4411 | PM01 |
+
+| IWERK_TGT | ARTPR_TGT | Result |
+|---|---|---|
+| `"4410"` | `"PM01"` | `✅` |
+| `"4410"` | `"PM03"` | `❌` (tuple not in KDS) |
+| `"4411"` | `"PM02"` | `❌` (tuple not in KDS) |
+| `""` | `""` | `✅` (all blank → skip) |
+
+#### 9c. SRC→TGT Mapping Check (`check_mapping`) — optional
+
+Verifies that the AS-IS → TO-BE mapping matches the KDS reference table.
+
+KDS sheet:
+
+| ASIS | TOBE |
+|---|---|
+| A | B |
+| A | C |
+| _(blank)_ | D |
+| _(blank)_ | E |
+
+| SRC | TGT | Result |
+|---|---|---|
+| `""` | `""` | `✅` (both blank → skip) |
+| `"A"` | `"B"` | `✅` |
+| `"A"` | `"C"` | `✅` |
+| `"A"` | `"X"` | `❌ Wrong mapping: FIELD_TGT: expected 'B' got 'X'` |
+| `"Z"` | `"B"` | `❌ AS-IS (SRC)='Z' not found in KDS` |
+| `""` | `"D"` | `✅` (blank ASIS → TOBE=D matches KDS blank-ASIS row) |
+| `""` | `"E"` | `✅` (blank ASIS → TOBE=E matches KDS blank-ASIS row) |
+| `""` | `"X"` | `❌ Wrong mapping: FIELD_TGT: expected one of ['D', 'E'] got 'X'` |
+| `"A"` | `""` | SRC filled, TGT blank → treated as mismatch |
+| `""` | `"B"` | `⚠️ SRC blank — please verify mapping in KDS` (only when KDS has **no** blank-ASIS rows) |
+
+---
 
 ### 10. Custom Validators (`CUSTOM_VALIDATIONS`)
 
-Business-logic validators applied to specific columns:
+Business-logic validators applied to specific columns.
 
-| Validator | Description |
+---
+
+#### `check_ad_date`
+
+Validates date string in `YYYYMMDD` format, year range 1900–2100.
+`00000000` is treated as blank and passes.
+
+| Value | Result |
 |---|---|
-| `check_ad_date` | Date must be `DD.MM.YYYY`, year 1900–2100 |
-| `check_ad_year` | Year must be 4-digit `YYYY`, range 1900–2100 |
-| `check_mm` | Month must be `MM`, range 01–12 |
-| `check_between_time` | Start datetime must not be after end datetime |
-| `check_uppercase` | ASCII English letters must be uppercase (A–Z) |
-| `check_startup_date` | Plants 2300/2304/4000/1201 must have startup date `01.10.2025` |
+| `""` (blank) | `✅` |
+| `"00000000"` | `✅` (treated as blank) |
+| `"20251001"` | `✅` |
+| `"19000101"` | `✅` (boundary) |
+| `"21001231"` | `✅` (boundary) |
+| `"20251301"` | `❌ FIELD_TGT: Invalid format '20251301': expected YYYYMMDD` (month 13) |
+| `"20250230"` | `❌` (Feb 30 doesn't exist) |
+| `"18991231"` | `❌ FIELD_TGT: Year in '18991231' must be between 1900–2100` |
+| `"21010101"` | `❌ FIELD_TGT: Year in '21010101' must be between 1900–2100` |
+| `"01.10.2025"` | `❌ FIELD_TGT: Invalid format '01.10.2025': expected YYYYMMDD` |
+| `"2025-10-01"` | `❌ FIELD_TGT: Invalid format '2025-10-01': expected YYYYMMDD` |
+
+---
+
+#### `check_ad_year`
+
+Validates 4-digit year `YYYY`, range 1900–2100.
+
+| Value | Result |
+|---|---|
+| `""` (blank) | `✅` |
+| `"2025"` | `✅` |
+| `"1900"` | `✅` (boundary) |
+| `"2100"` | `✅` (boundary) |
+| `"1899"` | `❌ FIELD_TGT: Year '1899' is out of valid range (1900–2100)` |
+| `"2101"` | `❌ FIELD_TGT: Year '2101' is out of valid range (1900–2100)` |
+| `"25"` | `❌ FIELD_TGT: Invalid year '25': expected YYYY` |
+| `"YYYY"` | `❌ FIELD_TGT: Invalid year 'YYYY': expected YYYY` |
+
+---
+
+#### `check_mm`
+
+Validates 2-digit month `MM`, range 01–12.
+
+| Value | Result |
+|---|---|
+| `""` (blank) | `✅` |
+| `"01"` | `✅` |
+| `"12"` | `✅` (boundary) |
+| `"00"` | `❌ FIELD_TGT: Month '00' must be between 01 and 12` |
+| `"13"` | `❌ FIELD_TGT: Month '13' must be between 01 and 12` |
+| `"1"` | `❌ FIELD_TGT: Invalid format '1': expected MM` |
+| `"Jan"` | `❌ FIELD_TGT: Invalid format 'Jan': expected MM` |
+
+---
+
+#### `check_uppercase`
+
+All ASCII English letters (A–Z) in the value must be uppercase. Non-ASCII characters (Thai, numbers, symbols) are ignored.
+
+| Value | Result |
+|---|---|
+| `""` (blank) | `✅` |
+| `"ABC"` | `✅` |
+| `"ABC123"` | `✅` (numbers ignored) |
+| `"ก-ข-ABC"` | `✅` (Thai ignored) |
+| `"abc"` | `❌ FIELD_TGT: Invalid format 'abc': English letters must be uppercase only (A-Z)` |
+| `"ABCdef"` | `❌ FIELD_TGT: Invalid format 'ABCdef': English letters must be uppercase only (A-Z)` |
+| `"ก-ข-abc"` | `❌` (English part must still be uppercase) |
+
+---
+
+#### `check_between_time`
+
+Validates that start datetime is not after end datetime.
+Date format: `YYYYMMDD`, Time format: `HH:MM:SS`.
+`00000000` in date fields is treated as blank.
+
+All four fields (`start_date`, `start_time`, `end_date`, `end_time`) must be provided together.
+
+| start_date | start_time | end_date | end_time | Result |
+|---|---|---|---|---|
+| `""` | `""` | `""` | `""` | `✅` (all blank → skip) |
+| `"00000000"` | `""` | `"00000000"` | `""` | `✅` (treated as blank → skip) |
+| `"20251001"` | `"08:00:00"` | `"20251001"` | `"17:00:00"` | `✅` |
+| `"20251001"` | `"08:00:00"` | `"20251001"` | `"08:00:00"` | `✅` (equal = pass) |
+| `"20251001"` | `"17:00:00"` | `"20251001"` | `"08:00:00"` | `❌ Start datetime '20251001 17:00:00' is after end datetime '20251001 08:00:00'` |
+| `"20251001"` | `""` | `"20251001"` | `"17:00:00"` | `❌ Missing field(s): {start_time}` |
+| `"invalid"` | `"08:00:00"` | `"20251001"` | `"17:00:00"` | `❌ Invalid datetime: start='invalid 08:00:00', end='20251001 17:00:00' (expect YYYYMMDD HH:MM:SS)` |
+
+---
+
+#### `check_startup_date`
+
+Plants `2300`, `2304`, `4000`, `1201` must have startup date = `20251001`.
+`00000000` is treated as blank (will fail for required plants since blank ≠ `20251001`).
+
+| planning_plant | startup_date | Result |
+|---|---|---|
+| `"4410"` | any | `✅` (plant not in required list) |
+| `"2300"` | `"20251001"` | `✅` |
+| `"2300"` | `"20241001"` | `❌ Invalid Start-up Date '20241001' for Planning Plant '2300': expected date is 20251001` |
+| `"2300"` | `""` (blank) | `❌ Invalid Start-up Date '' for Planning Plant '2300': expected date is 20251001` |
+| `"2300"` | `"00000000"` | `❌ Invalid Start-up Date '' for Planning Plant '2300': expected date is 20251001` |
+| `""` (blank plant) | any | `✅` (plant not in required list) |
+
+---
 
 ### 11. Overall Result
 
-After all checks, a `Check Overall Validation Result` column is inserted first.
-- `✅` only if every `Check *` column in that row is `✅`
-- `❌` otherwise
+After all checks, a `Check Overall Validation Result` column is inserted as the **first** Check column.
+
+| Row has | Overall |
+|---|---|
+| All `✅` | `✅` |
+| Any `❌` | `❌` |
+| Any `⚠️` | `❌` (warning treated as non-pass) |
 
 ---
 
@@ -161,7 +409,10 @@ JOBS:
   - NAME:          "Maintenance Order Header"
     SHEET_KEYWORD: "Maintenance Order Header"  # substring match against sheet names
     DS_TABLE:      "AFIH"                      # SAP table filter in Data Standard
-                                               # Use a list for multi-table: ["AFIH", "AUFK"]
+                                               # Use a list for multi-table:
+                                               #   DS_TABLE:
+                                               #     - "AFIH"
+                                               #     - "AUFK"
 
     VALIDATIONS:
       - mandatory

@@ -529,7 +529,10 @@ def validate_kds_mapping(
 
     Logic per row:
         1. SRC + TGT all blank              → PASS  (skip)
-        2. SRC all blank, TGT has values    → ⚠️ WARNING (cannot verify, please check)
+        2. SRC all blank, TGT has values    → look for KDS rows where ASIS is also blank
+             2a. KDS has blank-ASIS rows + TGT matches one of them → PASS
+             2b. KDS has blank-ASIS rows + TGT does not match      → ❌ FAIL (wrong mapping)
+             2c. KDS has no blank-ASIS rows                        → ⚠️ WARNING (cannot verify)
         3. SRC partially blank              → ❌ FAIL  (incomplete AS-IS combination)
         4. SRC not found in KDS             → ❌ FAIL  (AS-IS not in KDS)
         5. SRC found, TGT does not match    → ❌ FAIL  (wrong mapping, shows expected vs got)
@@ -561,16 +564,43 @@ def validate_kds_mapping(
             results.append(PASS)
             continue
 
-        # Case 2: SRC all blank but TGT has value → warning
+        # Case 2: SRC all blank but TGT has value
+        #   → try to match against KDS rows where ASIS columns are also blank
         if src_all_blank:
-            results.append(f"{WARN} SRC blank — please verify mapping in KDS '{kds_name}'")
+            blank_src_cond = pd.Series([True] * len(kds_df))
+            for kds_col in kds_src_columns:
+                blank_src_cond &= kds_df[kds_col].str.strip() == ""
+
+            blank_asis_rows = kds_df[blank_src_cond]
+
+            if blank_asis_rows.empty:
+                # 2c: KDS has no blank-ASIS rows → cannot verify
+                results.append(f"{WARN} SRC blank — please verify mapping in KDS '{kds_name}'")
+            else:
+                # Check if any blank-ASIS row has TGT matching template TGT (tuple match)
+                full_cond = blank_src_cond.copy()
+                for kds_col, tgt_val in zip(kds_tgt_columns, tgt_vals):
+                    full_cond &= kds_df[kds_col].str.strip() == tgt_val
+
+                if full_cond.any():
+                    # 2a: found matching blank-ASIS row → PASS
+                    results.append(PASS)
+                else:
+                    # 2b: blank-ASIS rows exist but TGT doesn't match any → FAIL
+                    errors = []
+                    for kds_col, tgt_col, tgt_val in zip(kds_tgt_columns, template_tgt_columns, tgt_vals):
+                        allowed = blank_asis_rows[kds_col].str.strip().tolist()
+                        if tgt_val not in allowed:
+                            errors.append(
+                                f"{tgt_col}: expected one of {allowed} got '{tgt_val}'"
+                            )
+                    results.append(f"{FAIL} Wrong mapping: {', '.join(errors)}" if errors else PASS)
             continue
 
         # Case 3: SRC partially blank → fail
         if any(v == "" for v in src_vals):
             missing = [template_src_columns[i] for i, v in enumerate(src_vals) if v == ""]
-            labels  = [label_map.get(c, c) for c in missing]
-            results.append(f"{FAIL} SRC incomplete — {', '.join(labels)} missing")
+            results.append(f"{FAIL} SRC incomplete — {', '.join(missing)} missing")
             continue
 
         # Case 4: find KDS row matching SRC combination

@@ -26,23 +26,21 @@ FAIL = "❌"
 
 def check_ad_date(value: str):
     """
-    Validate a date string in DD.MM.YYYY format with year 1900–2100.
-
-    Args:
-        value: The cell value (already stripped).
+    Validate a date string in YYYYMMDD format with year 1900–2100.
+    '00000000' is treated as blank and passes automatically.
 
     Returns None on pass, error string on fail.
     """
     val = value.strip()
-    if not val:
+    if not val or val == "00000000":
         return None
     try:
-        dt = datetime.strptime(val, "%d.%m.%Y")
+        dt = datetime.strptime(val, "%Y%m%d")
         if not (1900 <= dt.year <= 2100):
             return f"Year in '{val}' must be between 1900–2100"
         return None
     except ValueError:
-        return f"Invalid format '{val}': expected DD.MM.YYYY"
+        return f"Invalid format '{val}': expected YYYYMMDD"
 
 
 def check_ad_year(value: str):
@@ -98,6 +96,12 @@ def check_between_time(inputs: dict):
     end_date   = inputs.get("end_date",   "").strip()
     end_time   = inputs.get("end_time",   "").strip()
 
+    # Treat '00000000' as blank for date fields
+    if start_date == "00000000":
+        start_date = ""
+    if end_date == "00000000":
+        end_date = ""
+
     # All blank → nothing to check
     if not any([start_date, start_time, end_date, end_time]):
         return None
@@ -115,12 +119,12 @@ def check_between_time(inputs: dict):
         return "Missing field(s): " + ", ".join(f"{{{f}}}" for f in missing)
 
     try:
-        start_dt = datetime.strptime(f"{start_date} {start_time}", "%d.%m.%Y %H:%M:%S")
-        end_dt   = datetime.strptime(f"{end_date} {end_time}",     "%d.%m.%Y %H:%M:%S")
+        start_dt = datetime.strptime(f"{start_date} {start_time}", "%Y%m%d %H:%M:%S")
+        end_dt   = datetime.strptime(f"{end_date} {end_time}",     "%Y%m%d %H:%M:%S")
     except ValueError:
         return (
             f"Invalid datetime: start='{start_date} {start_time}', "
-            f"end='{end_date} {end_time}' (expect DD.MM.YYYY HH:MM:SS)"
+            f"end='{end_date} {end_time}' (expect YYYYMMDD HH:MM:SS)"
         )
 
     if start_dt > end_dt:
@@ -162,7 +166,11 @@ def check_startup_date(field_data: dict):
     planning_plant = field_data.get("planning_plant", "").strip()
     startup_date   = field_data.get("startup_date",   "").strip()
     required_plants = {"2300", "2304", "4000", "1201"}
-    expected_date   = "01.10.2025"
+    expected_date   = "20251001"
+
+    # Treat '00000000' as blank
+    if startup_date == "00000000":
+        startup_date = ""
 
     if planning_plant in required_plants and startup_date != expected_date:
         return (

@@ -17,8 +17,7 @@ IGNORE_COLUMN_SUFFIXES:
   - "SOURCE"
   - "REMARK"
 
-# ─── Jobs ────────────────────────────────────────────────────────────────────
-# Available SAP tables: IFLOT, IFLOTX, ILOA, IHPA, IFLOS, JEST, STXH, STXL
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
 JOBS:
   - NAME:           "Functional Location (TH,MM)"
     SHEET_KEYWORD:  "Functional Location (TH,MM)"
@@ -52,7 +51,8 @@ JOBS:
     # kds_field_name : column name (row 1) in that KDS sheet containing allowed values
     # source_columns : template column(s) whose values must exist in kds_field_name
     KDS_REFERENCES:
-      - kds_sheet: "T370S"
+      # Structure Indicator
+      - kds_sheet: "THMM_T370S"
         kds_columns:
           - "TPLKZ_TGT"
         source_columns:
@@ -62,8 +62,9 @@ JOBS:
             - "TPLKZ_SRC"
           template_src_columns:      # columns ใน template ฝั่ง AS-IS
             - "TPLKZ_SRC"
-      
-      - kds_sheet: "T370F"
+
+      # FunctLocCategory
+      - kds_sheet: "THMM_T370F"
         kds_columns:
           - "FLTYP_TGT"
         source_columns:
@@ -73,8 +74,9 @@ JOBS:
             - "FLTYP_SRC"
           template_src_columns:      
             - "FLTYP_SRC"
-      
-      - kds_sheet: "T370K"
+
+      # Object Type
+      - kds_sheet: "THMM_T370K"
         kds_columns:
           - "EQART_TGT"
         source_columns:
@@ -85,7 +87,40 @@ JOBS:
           template_src_columns:      
             - "EQART_SRC"
 
-      - kds_sheet: "T370C"
+      # Maintenance Plant
+      - kds_sheet: "THMM_T001W"
+        kds_columns:
+          - "SWERK_TGT"
+        source_columns:
+          - "SWERK_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "SWERK_SRC"
+          template_src_columns:      
+            - "SWERK_SRC"
+
+      # Maintenance Plant + Plant Section + Plant Location
+      - kds_sheet: "THMM_T357"
+        kds_columns:
+          - "SWERK_TGT"
+          - "BEBER_TGT"
+          - "STORT_TGT"
+        source_columns:
+          - "SWERK_TGT"
+          - "BEBER_TGT"
+          - "STORT_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "SWERK_SRC"
+            - "BEBER_SRC"
+            - "STORT_SRC"
+          template_src_columns:      
+            - "SWERK_SRC"
+            - "BEBER_SRC"
+            - "STORT_SRC"
+
+      # ABC Indicator
+      - kds_sheet: "THMM_T370C"
         kds_columns:
           - "ABCKZ_TGT"
         source_columns:
@@ -95,8 +130,9 @@ JOBS:
             - "ABCKZ_SRC"
           template_src_columns:      
             - "ABCKZ_SRC"
-      
-      - kds_sheet: "T399I"
+
+      # Planning Plant
+      - kds_sheet: "THMM_T399I"
         kds_columns:
           - "IWERK_TGT"
         source_columns:
@@ -107,7 +143,8 @@ JOBS:
           template_src_columns:      
             - "IWERK_SRC"
       
-      - kds_sheet: "T024I"
+      # Planner Group
+      - kds_sheet: "THMM_T024I"
         kds_columns:
           - "IWERK_TGT"
           - "INGRP_TGT"
@@ -122,7 +159,8 @@ JOBS:
             - "IWERK_SRC"
             - "INGRP_SRC"
       
-      - kds_sheet: "T352B"
+      # Catalog Profile
+      - kds_sheet: "THMM_T352B"
         kds_columns:
           - "RBNR_TGT"
         source_columns:
@@ -132,6 +170,13 @@ JOBS:
             - "RBNR_SRC"
           template_src_columns:      # columns ใน template ฝั่ง AS-IS
             - "RBNR_SRC"
+
+      # Country 
+      - kds_sheet: "THMM_T005"
+        kds_columns:
+          - "HERLD_TGT"
+        source_columns:
+          - "HERLD_TGT"
 
     CUSTOM_VALIDATIONS:
       - check_ad_date:
@@ -145,29 +190,26 @@ JOBS:
 
 
 
+  - NAME:           "Individual Object Status(TH,MM)"
+    SHEET_KEYWORD:  "Individual Object Status(TH,MM)"
+    DS_TABLE:   
+      - "IFLOT"    
+      - "ILOA"
 
+    VALIDATIONS:
+      - mandatory
+      - length
 
+    PRIMARY_KEYS:
 
-
-
-
-
-  # - NAME:           "Individual Object Status(TH,MM)"
-  #   SHEET_KEYWORD:  "Individual Object Status(TH,MM)"
-  #   DS_TABLE:       "ILOA"
-
-  #   VALIDATIONS:
-  #     - mandatory
-  #     - length
-
-  #   PRIMARY_KEYS:
-  #     - ["TPLNR_TGT"]
-
-  #   FIXED_VALUE_FIELDS: []
-  #   PROHIBITED_NEWLINE_FIELDS: []
-  #   NON_BLANK_OPTIONAL_FIELDS: []
-  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
-  #   SAME_SHEET_REFERENCES: []
-  #   CROSS_SHEET_REFERENCES: []
-  #   KDS_REFERENCES: []
-  #   CUSTOM_VALIDATIONS: []
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["TPLNR_TGT"]           # column ใน sheet นี้ (source)
+        target_sheet_keyword: "Functional Location (TH,MM)"      # ชื่อ sheet ปลายทาง (substring match)
+        target_columns:       ["TPLNR_TGT"]            # column ใน sheet ปลายทาง
+    KDS_REFERENCES: []
+    CUSTOM_VALIDATIONS: []

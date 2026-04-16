@@ -1,0 +1,78 @@
+MODULE: "Maintenance Revisions"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Maintenance_Revisions/MC2_MNT-PM-M001_Maintenance Revisions_TH_Preload.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "Maintenance Revisions"   # TODO: ชื่อ sheet ใน DataStandardList.xlsx
+MAPPING_PATH:         "Metadata/Mapping/KDS_Maintenance_Revisions.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M001_Maintenance Revisions_TH_Preload.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+  - "REMARKS"
+  - "_DESCRIPTION"
+
+# ─── Jobs (one per worksheet) ────────────────────────────────────────────────
+JOBS:
+  - NAME:          "Maintenance revisions"      # TODO: ชื่อ job เช่น "Maintenance Revision Header"
+    SHEET_KEYWORD: "TH_Maintenance revisions"   # TODO: substring ของชื่อ sheet ใน template
+    DS_TABLE:      "T352R"                      # TODO: SAP table เช่น "BLIST"
+                                                #       หลาย table ใช้ list:
+                                                #         - "TABLE_A"
+                                                #         - "TABLE_B"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    # Composite primary keys — each inner list is one PK set
+    PRIMARY_KEYS:
+      - ["IWERK_TGT", "REVNR_TGT"]                              # TODO: ใส่ชื่อ field เช่น ["BELNR_TGT"]
+
+
+    # Fixed allowed-values checks
+    FIXED_VALUE_FIELDS: []
+
+    # Fields that must not contain newline characters
+    PROHIBITED_NEWLINE_FIELDS:
+      - "REVTX_TGT"
+
+    # Optional fields that ALL must have a value
+    NON_BLANK_OPTIONAL_FIELDS: []
+
+    # Optional field groups where at LEAST ONE per group must have a value
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+
+    # Same-sheet column references
+    SAME_SHEET_REFERENCES: []
+
+    # Cross-sheet references (validated after all jobs are loaded)
+    CROSS_SHEET_REFERENCES: []
+
+    # KDS mapping reference checks
+    KDS_REFERENCES:
+      # Maintenance Planning Plant
+      - kds_sheet:      "THMM_T399I"
+        kds_field_name:
+          - "IWERK_TGT"
+        source_columns:
+          - "IWERK_TGT"
+        check_mapping:
+          kds_src_columns:           # columns ใน KDS sheet ฝั่ง AS-IS
+            - "IWERK_SRC"
+          template_src_columns:      # columns ใน template ฝั่ง AS-IS
+            - "IWERK_SRC"
+
+
+    # Custom (business-logic) validators
+    CUSTOM_VALIDATIONS:
+      - check_ad_date:
+          - "REVBD_TGT"
+          - "REVED_TGT"
