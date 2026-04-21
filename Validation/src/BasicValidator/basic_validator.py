@@ -45,6 +45,31 @@ def _join_errors(errors: list) -> str:
     return ",\n".join(errors)
 
 
+def _meets_condition(row, condition) -> bool:
+    """
+    Return True if the row should be validated (condition satisfied).
+
+    condition can be:
+      - None / empty          → always validate
+      - dict {column, values} → single condition
+      - list of dicts         → AND logic, ALL must be satisfied
+
+    A condition column that is blank or not in values → skip (return False).
+    """
+    if not condition:
+        return True
+    conds = condition if isinstance(condition, list) else [condition]
+    for cond in conds:
+        col    = cond.get("column")
+        values = [str(v).strip() for v in cond.get("values", [])]
+        if not col:
+            continue
+        row_val = str(row.get(col, "")).strip()
+        if not row_val or row_val not in values:
+            return False
+    return True
+
+
 def _format_errors(errors: list) -> str:
     return PASS if not errors else _join_errors(errors)
 
@@ -213,8 +238,9 @@ def validate_fixed_values(
     df = df.copy()
 
     for rule in fixed_fields:
-        col     = rule.get("column")
-        allowed = [str(v).strip() for v in rule.get("allowed_values", [])]
+        col       = rule.get("column")
+        allowed   = [str(v).strip() for v in rule.get("allowed_values", [])]
+        condition = rule.get("condition")
 
         if not col or col not in df.columns:
             continue
@@ -224,6 +250,9 @@ def validate_fixed_values(
         results    = []
 
         for _, row in df.iterrows():
+            if not _meets_condition(row, condition):
+                results.append(PASS)
+                continue
             val = str(row.get(col, "")).strip()
             if not val or val in allowed:
                 results.append(PASS)
@@ -756,16 +785,12 @@ def validate_start_with(
         result_col     = f"Check {col} starts with \"{display_prefix}\""
         results        = []
 
-        cond_col    = rule.get("condition", {}).get("column")
-        cond_values = [str(v).strip() for v in rule.get("condition", {}).get("values", [])]
+        condition = rule.get("condition")
 
         for _, row in df.iterrows():
-            # condition check — skip row if condition column not in allowed values
-            if cond_col and cond_col in df.columns:
-                row_cond_val = str(row.get(cond_col, "")).strip()
-                if not row_cond_val or row_cond_val not in cond_values:
-                    results.append(PASS)
-                    continue
+            if not _meets_condition(row, condition):
+                results.append(PASS)
+                continue
 
             val = str(row.get(col, "")).strip()
             if not val:

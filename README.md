@@ -132,10 +132,30 @@ FIXED_VALUE_FIELDS:
     allowed_values:
       - "4410"
       - "4411"
+
   - column: "ATKLE_TGT"
     allowed_values:
       - "X"
       - ""              # empty string is an allowed value
+
+  # Conditional — only validate rows where condition columns match
+  - column: "ATNAM"
+    allowed_values:
+      - "ZFL-PUMP"
+      - "ZFL-MOTOR"
+    condition:                     # single condition (dict)
+      column: "SOURCE"
+      values: ["PE1"]
+
+  # Multiple conditions — AND logic (all must be satisfied)
+  - column: "ATNAM"
+    allowed_values:
+      - "ZFL-PUMP"
+    condition:                     # multi-condition (list of dicts)
+      - column: "SOURCE"
+        values: ["PE1"]
+      - column: "KLART_TGT"
+        values: ["002", "003"]
 ```
 
 | Cell Value | Result |
@@ -252,11 +272,18 @@ START_WITH_FIELDS:
     prefix:
       - "ZFL-"
       - "ZEQ-"
-    condition:
+    condition:                     # single condition (dict)
       column: "SOURCE"
-      values:
-        - "TH"
-        - "MM"
+      values: ["TH", "MM"]
+
+  # Multiple conditions — AND logic (all must be satisfied)
+  - column: "CLASS"
+    prefix: "ZFL-"
+    condition:                     # multi-condition (list of dicts)
+      - column: "SOURCE"
+        values: ["TH", "MM"]
+      - column: "KLART_TGT"
+        values: ["002", "003"]
 ```
 
 **Test cases** (single prefix `"TH-"`):
@@ -288,6 +315,15 @@ START_WITH_FIELDS:
 | `"SG"` | `"ZOT-999"` | `✅` (SOURCE not in condition → skip) |
 | `""` | `"ZOT-999"` | `✅` (SOURCE blank → skip) |
 | `"TH"` | `""` | `✅` (CLASS blank → skip) |
+
+**Test cases** (multi-condition AND: `SOURCE=["TH","MM"]` AND `KLART_TGT=["002","003"]`):
+
+| SOURCE | KLART_TGT | CLASS | Result |
+|---|---|---|---|
+| `"TH"` | `"002"` | `"ZFL-001"` | `✅` (all conditions met, prefix ok) |
+| `"TH"` | `"002"` | `"ZOT-999"` | `❌` |
+| `"TH"` | `"999"` | `"ZOT-999"` | `✅` (KLART_TGT not in condition → skip) |
+| `"SG"` | `"002"` | `"ZOT-999"` | `✅` (SOURCE not in condition → skip) |
 
 ---
 
