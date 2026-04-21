@@ -66,6 +66,19 @@ Reads `Field Requirement` and `S4 Target Data Length` from `DataStandardList.xls
 - **Mandatory**: field marked `M-Mandatory` in Data Standard
 - **Blank detection**: empty string, `NaN`, `None`, `"nan"`, `"none"` all count as blank
 
+**Config:**
+```yaml
+DS_TABLE: "AFIH"          # single table
+# or
+DS_TABLE:
+  - "AFIH"
+  - "AUFK"                # multi-table JOIN
+
+VALIDATIONS:
+  - mandatory
+  - length
+```
+
 **Mandatory test cases:**
 
 | Cell Value | Mandatory in DS | Result |
@@ -89,6 +102,13 @@ Reads `Field Requirement` and `S4 Target Data Length` from `DataStandardList.xls
 
 Checks that the combination of key columns is **unique** and **non-blank** across all rows.
 
+**Config:**
+```yaml
+PRIMARY_KEYS:
+  - ["AUFNR_TGT"]                    # single-column PK
+  - ["AUFNR_TGT", "VORNR_TGT"]      # composite PK (each list = separate check column)
+```
+
 **Test cases:**
 
 | AUFNR_TGT | VORNR_TGT | Result |
@@ -105,7 +125,18 @@ Checks that the combination of key columns is **unique** and **non-blank** acros
 
 Checks that a column only contains values from a predefined allowed list. Blank cells are skipped.
 
-**Config:** `allowed_values: ["4410", "4411"]`
+**Config:**
+```yaml
+FIXED_VALUE_FIELDS:
+  - column: "IWERK_TGT"
+    allowed_values:
+      - "4410"
+      - "4411"
+  - column: "ATKLE_TGT"
+    allowed_values:
+      - "X"
+      - ""              # empty string is an allowed value
+```
 
 | Cell Value | Result |
 |---|---|
@@ -121,6 +152,13 @@ Checks that a column only contains values from a predefined allowed list. Blank 
 
 Checks that specified columns do not contain `\n` (newline) or `\r` (carriage return) characters.
 
+**Config:**
+```yaml
+PROHIBITED_NEWLINE_FIELDS:
+  - "KTEXT_TGT"
+  - "ATNAM_TGT"
+```
+
 | Cell Value | Result |
 |---|---|
 | `"Normal text"` | `✅` |
@@ -134,6 +172,13 @@ Checks that specified columns do not contain `\n` (newline) or `\r` (carriage re
 
 Each listed column **must** have a value. Checked independently.
 
+**Config:**
+```yaml
+NON_BLANK_OPTIONAL_FIELDS:
+  - "ILOAN_TGT"
+  - "ATNAM_TGT"
+```
+
 | Cell Value | Result |
 |---|---|
 | `"ABC"` | `✅` |
@@ -146,7 +191,12 @@ Each listed column **must** have a value. Checked independently.
 
 Groups of columns where **at least one** per group must have a value.
 
-**Config:** `- ["ANLBD_TGT", "ANLVD_TGT", "ANLBZ_TGT"]`
+**Config:**
+```yaml
+NON_BLANK_OPTIONAL_ANY_FIELDS:
+  - ["ANLBD_TGT", "ANLVD_TGT", "ANLBZ_TGT"]   # at least one of these must be filled
+  - ["IWERK_TGT", "SWERK_TGT"]                  # each list is an independent group
+```
 
 | ANLBD_TGT | ANLVD_TGT | ANLBZ_TGT | Result |
 |---|---|---|---|
@@ -160,7 +210,12 @@ Groups of columns where **at least one** per group must have a value.
 
 Checks that a value in a **child** column exists somewhere in a **parent** column on the same sheet. Blank child values are skipped.
 
-**Config:** `source_column: "AUFNRC_TGT"`, `target_column: "AUFNR_TGT"`
+**Config:**
+```yaml
+SAME_SHEET_REFERENCES:
+  - source_column: "AUFNRC_TGT"    # value in this column...
+    target_column: "AUFNR_TGT"     # ...must exist somewhere in this column
+```
 
 | AUFNRC_TGT (child) | Values in AUFNR_TGT (parent) | Result |
 |---|---|---|
@@ -174,7 +229,19 @@ Checks that a value in a **child** column exists somewhere in a **parent** colum
 
 Checks that a key combination exists in another worksheet. Runs **after all jobs** are loaded. Blank source rows are skipped.
 
-**Config:** `source_columns: ["AUFNR_TGT"]`, `target_sheet_keyword: "Order Master Data"`, `target_columns: ["AUFNR_TGT"]`
+**Config:**
+```yaml
+CROSS_SHEET_REFERENCES:
+  # Single column
+  - source_columns:       ["AUFNR_TGT"]
+    target_sheet_keyword: "Order Master Data"   # exact sheet name match
+    target_columns:       ["AUFNR_TGT"]
+
+  # Composite key — all columns must match together
+  - source_columns:       ["ATINN_TGT", "ATNAM"]
+    target_sheet_keyword: "TH,MY_CABN_Characteristic"
+    target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
+```
 
 | Source value | Target sheet has | Result |
 |---|---|---|
@@ -197,7 +264,13 @@ Checks that template values exist in an allowed-value table in `KDS_Mapping.xlsx
 
 #### 9a. Single column
 
-**Config:** `kds_field_name: "ARTPR_TOBE"`, `source_columns: ["ARTPR_TGT"]`
+**Config:**
+```yaml
+KDS_REFERENCES:
+  - kds_sheet:      "DT03"
+    kds_field_name: "ARTPR_TOBE"    # column name in the KDS sheet
+    source_columns: ["ARTPR_TGT"]   # column name in the template
+```
 
 KDS sheet `"DT03"`:
 
@@ -214,7 +287,17 @@ KDS sheet `"DT03"`:
 
 #### 9b. Composite key
 
-**Config:** `kds_columns: ["PLANT_TOBE", "TYPE_TOBE"]`, `source_columns: ["IWERK_TGT", "ARTPR_TGT"]`
+**Config:**
+```yaml
+KDS_REFERENCES:
+  - kds_sheet: "DT_PLANT_TYPE"
+    kds_columns:               # column names in the KDS sheet (composite key)
+      - "PLANT_TOBE"
+      - "TYPE_TOBE"
+    source_columns:            # corresponding template columns (same order)
+      - "IWERK_TGT"
+      - "ARTPR_TGT"
+```
 
 KDS sheet:
 
@@ -234,6 +317,21 @@ KDS sheet:
 #### 9c. SRC→TGT Mapping Check (`check_mapping`) — optional
 
 Verifies that the AS-IS → TO-BE mapping matches the KDS reference table.
+
+**Config:**
+```yaml
+KDS_REFERENCES:
+  - kds_sheet: "DT_PLANT_TYPE"
+    kds_columns:
+      - "PLANT_TOBE"
+      - "TYPE_TOBE"
+    source_columns:
+      - "IWERK_TGT"
+      - "ARTPR_TGT"
+    check_mapping:
+      kds_src_columns:       ["PLANT_SRC", "TYPE_SRC"]   # AS-IS columns in KDS sheet
+      template_src_columns:  ["IWERK_SRC", "ARTPR_SRC"]  # AS-IS columns in template
+```
 
 KDS sheet:
 
@@ -305,6 +403,14 @@ Business-logic validators applied to specific columns.
 Validates date string in `YYYYMMDD` format, year range 1900–2100.
 `00000000` is treated as blank and passes.
 
+**Config:**
+```yaml
+CUSTOM_VALIDATIONS:
+  - check_ad_date:
+      - ADDAT_TGT
+      - DATAN_TGT
+```
+
 | Value | Result |
 |---|---|
 | `""` (blank) | `✅` |
@@ -325,6 +431,13 @@ Validates date string in `YYYYMMDD` format, year range 1900–2100.
 
 Validates 4-digit year `YYYY`, range 1900–2100.
 
+**Config:**
+```yaml
+CUSTOM_VALIDATIONS:
+  - check_ad_year:
+      - BAUJJ_TGT
+```
+
 | Value | Result |
 |---|---|
 | `""` (blank) | `✅` |
@@ -342,6 +455,13 @@ Validates 4-digit year `YYYY`, range 1900–2100.
 
 Validates 2-digit month `MM`, range 01–12.
 
+**Config:**
+```yaml
+CUSTOM_VALIDATIONS:
+  - check_mm:
+      - BAUMM_TGT
+```
+
 | Value | Result |
 |---|---|
 | `""` (blank) | `✅` |
@@ -357,6 +477,14 @@ Validates 2-digit month `MM`, range 01–12.
 #### `check_uppercase`
 
 All ASCII English letters (A–Z) in the value must be uppercase. Non-ASCII characters (Thai, numbers, symbols) are ignored.
+
+**Config:**
+```yaml
+CUSTOM_VALIDATIONS:
+  - check_uppercase:
+      - TPLNR_TGT
+      - EQKTX_TGT
+```
 
 | Value | Result |
 |---|---|
@@ -378,6 +506,16 @@ Date format: `YYYYMMDD`, Time format: `HH:MM:SS`.
 
 Date fields (`start_date`, `end_date`) are **required** if either is filled. Time fields (`start_time`, `end_time`) are **optional** — default to `00:00:00` when blank.
 
+**Config:**
+```yaml
+CUSTOM_VALIDATIONS:
+  - check_between_time:
+      - start_date: ANLBD_TGT
+        start_time: ANLBZ_TGT    # optional — omit or leave blank to default 00:00:00
+        end_date:   ANLVD_TGT
+        end_time:   ANLVZ_TGT    # optional — omit or leave blank to default 00:00:00
+```
+
 | start_date | start_time | end_date | end_time | Result |
 |---|---|---|---|---|
 | `""` | `""` | `""` | `""` | `✅` (all blank → skip) |
@@ -395,6 +533,14 @@ Date fields (`start_date`, `end_date`) are **required** if either is filled. Tim
 
 Plants `2300`, `2304`, `4000`, `1201` must have startup date = `20251001`.
 `00000000` is treated as blank (will fail for required plants since blank ≠ `20251001`).
+
+**Config:**
+```yaml
+CUSTOM_VALIDATIONS:
+  - check_startup_date:
+      - planning_plant: IWERK_TGT    # column containing the planning plant code
+        startup_date:   INBDT_TGT    # column containing the startup date (YYYYMMDD)
+```
 
 | planning_plant | startup_date | Result |
 |---|---|---|
