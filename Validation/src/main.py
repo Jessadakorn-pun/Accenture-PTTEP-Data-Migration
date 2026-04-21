@@ -41,6 +41,7 @@ from basic_validator import (
     validate_non_blank_optional,
     validate_non_blank_optional_any,
     validate_same_sheet_reference,
+    validate_start_with,
     validate_kds_reference,
     validate_kds_mapping,
     validate_kds_prohibited,
@@ -138,6 +139,12 @@ def _run_job(
     if same_refs:
         df = validate_same_sheet_reference(df, same_refs, label_map)
         print("  ✅  Same-Sheet References")
+
+    # ── 7b. Start-with validation ─────────────────────────────────────────────
+    start_with_fields = job_config.get("START_WITH_FIELDS", [])
+    if start_with_fields:
+        df = validate_start_with(df, start_with_fields, label_map)
+        print("  ✅  Start-With")
 
     # ── 8. Custom validators ──────────────────────────────────────────────────
     custom_configs = job_config.get("CUSTOM_VALIDATIONS", [])

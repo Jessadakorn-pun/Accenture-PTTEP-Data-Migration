@@ -225,6 +225,50 @@ SAME_SHEET_REFERENCES:
 
 ---
 
+### 7b. Start-With Validation (`START_WITH_FIELDS`)
+
+Checks that a column value starts with a required prefix. Blank cells are skipped.
+
+**Config:**
+```yaml
+START_WITH_FIELDS:
+  # Single prefix
+  - column: "TPLNR_TGT"
+    prefix: "TH-"
+
+  # Multiple allowed prefixes (OR logic — any one is acceptable)
+  - column: "KOSTL_TGT"
+    prefix:
+      - "TH-"
+      - "MY-"
+
+  # Case-insensitive match
+  - column: "EQKTX_TGT"
+    prefix: "eq"
+    case_sensitive: false    # default: true
+```
+
+**Test cases** (single prefix `"TH-"`):
+
+| Value | Result |
+|---|---|
+| `""` (blank) | `✅` (skip) |
+| `"TH-1234"` | `✅` |
+| `"TH-"` | `✅` (prefix itself passes) |
+| `"MY-1234"` | `❌ TPLNR_TGT: 'MY-1234' must start with 'TH-'` |
+| `"th-1234"` | `❌` (case sensitive by default) |
+
+**Test cases** (multiple prefixes `["TH-", "MY-"]`):
+
+| Value | Result |
+|---|---|
+| `"TH-1234"` | `✅` |
+| `"MY-5678"` | `✅` |
+| `"SG-9999"` | `❌ KOSTL_TGT: 'SG-9999' must start with one of ['TH-', 'MY-']` |
+| `""` (blank) | `✅` (skip) |
+
+---
+
 ### 8. Cross-Sheet Reference (`CROSS_SHEET_REFERENCES`)
 
 Checks that a key combination exists in another worksheet. Runs **after all jobs** are loaded. Blank source rows are skipped.
@@ -746,6 +790,7 @@ No changes to `src/` are required.
 | Non-Blank All | `Check To-Be Optional Field Missing Value` |
 | Non-Blank Any | `Check To-Be Optional Any Field Missing Value` |
 | Same-Sheet Ref | `Check SRC_COL in TGT_COL` |
+| Start-With | `Check COL starts with "PREFIX"` |
 | Cross-Sheet Ref | `Check Cross-Sheet: COL in SheetName` |
 | KDS | `Check KDS Mapping: COL in 'KDS_SHEET'` |
 | KDS SRC→TGT | `Check KDS Mapping (SRC→TGT): SRC_COL → TGT_COL in 'KDS_SHEET'` |

@@ -710,6 +710,75 @@ def validate_kds_prohibited(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Start-with validation
+# ─────────────────────────────────────────────────────────────────────────────
+
+def validate_start_with(
+    df: pd.DataFrame,
+    start_with_fields: list,
+    label_map: dict,
+) -> pd.DataFrame:
+    """
+    Add 'Check {col} starts with "{prefix}"' columns.
+
+    Config key: START_WITH_FIELDS
+        - column: "TPLNR_TGT"
+          prefix: "TH-"               # single prefix (string)
+          # or
+          prefix:                     # multiple allowed prefixes (list)
+            - "TH-"
+            - "MY-"
+          case_sensitive: true        # optional, default true
+
+    Behaviour:
+        - Blank cell             → PASS (skip)
+        - Value starts with any prefix in the list → PASS
+        - Otherwise              → FAIL
+    """
+    df = df.copy()
+
+    for rule in start_with_fields:
+        col            = rule.get("column")
+        raw_prefix     = rule.get("prefix", "")
+        case_sensitive = rule.get("case_sensitive", True)
+
+        if not col or col not in df.columns:
+            print(f"  ⚠️  start_with: column '{col}' not found — skipped.")
+            continue
+
+        prefixes = [raw_prefix] if isinstance(raw_prefix, str) else list(raw_prefix)
+        prefixes = [str(p) for p in prefixes if str(p)]
+        if not prefixes:
+            print(f"  ⚠️  start_with: no prefix defined for '{col}' — skipped.")
+            continue
+
+        display_prefix = prefixes[0] if len(prefixes) == 1 else str(prefixes)
+        result_col     = f"Check {col} starts with \"{display_prefix}\""
+        results        = []
+
+        for _, row in df.iterrows():
+            val = str(row.get(col, "")).strip()
+            if not val:
+                results.append(PASS)
+                continue
+
+            check_val     = val if case_sensitive else val.upper()
+            check_pfx_list = prefixes if case_sensitive else [p.upper() for p in prefixes]
+
+            if any(check_val.startswith(p) for p in check_pfx_list):
+                results.append(PASS)
+            else:
+                if len(prefixes) == 1:
+                    results.append(f"{FAIL} {col}: '{val}' must start with '{prefixes[0]}'")
+                else:
+                    results.append(f"{FAIL} {col}: '{val}' must start with one of {prefixes}")
+
+        df[result_col] = results
+
+    return df
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Overall result rollup
 # ─────────────────────────────────────────────────────────────────────────────
 
