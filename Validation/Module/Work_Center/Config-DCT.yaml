@@ -1,0 +1,176 @@
+MODULE: "DCT Work Center"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Work_Center/DCT213-214-215.xlsx"   #TODO
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "DCT Work Center"                          
+MAPPING_PATH:         "Metadata/Mapping/KDS_Work_Center_DCT.xlsx" #TODO
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "DCT213-214-215-Validated_Check_Hirachy.xlsx"       #TODO                         
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+  - "REMARKS"
+  - "_DESCRIPTION"
+
+# ─── Jobs (one per worksheet) ────────────────────────────────────────────────
+JOBS:
+  - NAME:          "1. DCT213"                 
+    SHEET_KEYWORD: "DCT213"             
+    DS_TABLE:
+      - "DCT213"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:                  
+      - []
+
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS:
+      - "CRTX_KTEXT"
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES: 
+    KDS_REFERENCES:
+      - kds_sheet: "MY_T001W"
+        kds_columns:
+          - "WERKS_TGT"
+        source_columns:
+          - "CRHD_WERKS"
+      - kds_sheet: "MY_KOSTL"
+        kds_columns:
+          - "KOSTL_TGT"
+        source_columns:
+          - "CRCO_KOSTL"
+
+    KDS_PROHIBITED_REFERENCES:     [] 
+    CUSTOM_VALIDATIONS: []
+  
+  - NAME:          "2. DCT214"                 
+    SHEET_KEYWORD: "DCT214"             
+    DS_TABLE:
+      - "DCT214"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:                  
+      - []
+
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS:
+      - "ZLEGACY_CRTX_KTEXT_SRC"
+      - "CRTX_KTEXT"
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES: 
+    KDS_REFERENCES:
+      - kds_sheet: "MY_T001W"
+        kds_columns:
+          - "WERKS_SRC"
+        source_columns:
+          - "ZLEGACY_CRHD_WERKS_SRC"
+
+      - kds_sheet: "MY_KOSTL"
+        kds_columns:
+          - "KOSTL_SRC"
+        source_columns:
+          - "ZLEGACY_CRCO_KOSTL_SRC"
+      
+      - kds_sheet: "MY_T001W"
+        kds_columns:
+          - "WERKS_TGT_FULL"
+        source_columns:
+          - "CRHD_WERKS"
+      
+      - kds_sheet: "MY_KOSTL"
+        kds_columns:
+          - "KOSTL_TGT"
+        source_columns:
+          - "CRCO_KOSTL"
+        check_mapping:
+          kds_src_columns:         
+            - "KOSTL_SRC"
+          template_src_columns:      
+            - "ZLEGACY_CRCO_KOSTL_SRC"
+
+
+    KDS_PROHIBITED_REFERENCES:     [] 
+    CUSTOM_VALIDATIONS: []
+  
+  - NAME:          "3. DCT215"                 
+    SHEET_KEYWORD: "DCT215"             
+    DS_TABLE:
+      - "DCT215"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:                  
+      - []
+
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS:
+      - "CRTX_KTEXT"
+
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES: 
+    KDS_REFERENCES:
+      - kds_sheet: "MY_T001W"
+        kds_columns:
+          - "WERKS_TGT"
+        source_columns:
+          - "CRHD_WERKS"
+      - kds_sheet: "MY_KOSTL"
+        kds_columns:
+          - "KOSTL_TGT"
+        source_columns:
+          - "CRCO_KOSTL"
+      - kds_sheet: "MY_TC30"
+        kds_columns:
+          - "VERWE_TGT"
+        source_columns:
+          - "CRHD_VERWE"
+      - kds_sheet: "MY_TC21"
+        kds_columns:
+          - "VGWTS_TGT"
+        source_columns:
+          - "CRHD_VGWTS"
+      - kds_sheet: "MY_TC23"
+        kds_columns:
+          - "PLANV_TGT"
+        source_columns:
+          - "CRHD_PLANV"
+      - kds_sheet: "MY_T430"
+        kds_columns:
+          - "STEUS_TGT"
+        source_columns:
+          - "CRHD_STEUS"
+      - kds_sheet: "MY_T002"
+        kds_columns:
+          - "SPRAS_TGT"
+        source_columns:
+          - "CRTX_SPRAS"
+      - kds_sheet: "MY_TC26"
+        kds_columns:
+          - "KAPAR_TGT"
+        source_columns:
+          - "KAKO_KAPAR"
+
+
+    KDS_PROHIBITED_REFERENCES:     [] 
+    CUSTOM_VALIDATIONS: []
