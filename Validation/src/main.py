@@ -43,6 +43,7 @@ from basic_validator import (
     validate_same_sheet_reference,
     validate_kds_reference,
     validate_kds_mapping,
+    validate_kds_prohibited,
     validate_cross_sheet_reference,
     add_overall_result,
 )
@@ -76,14 +77,13 @@ def _run_job(
     sheet_keyword = job_config.get("SHEET_KEYWORD", job_name)
 
     matched = next(
-        (s for s in all_sheet_dfs if sheet_keyword.lower() in s.lower()),
+        (s for s in all_sheet_dfs if s.lower() == sheet_keyword.lower()),
         None,
     )
     if matched is None:
-        raise ValueError(
-            f"Job '{job_name}': no sheet found matching keyword '{sheet_keyword}'. "
-            f"Available sheets: {list(all_sheet_dfs.keys())}"
-        )
+        print(f"  ❌  Not found worksheet name: '{sheet_keyword}'")
+        print(f"      Available sheets: {list(all_sheet_dfs.keys())}")
+        raise ValueError(f"Job '{job_name}': worksheet '{sheet_keyword}' not found.")
 
     df        = all_sheet_dfs[matched].copy()
     label_map = all_label_maps[matched]
@@ -194,6 +194,31 @@ def _run_job(
                 except (ValueError, KeyError) as exc:
                     print(f"  ⚠️   KDS Mapping '{kds_sheet}': {exc} — skipped.")
 
+    # ── KDS Prohibited References (blacklist — value must NOT exist in KDS) ──
+    prohibited_refs = job_config.get("KDS_PROHIBITED_REFERENCES", [])
+    for proh_ref in prohibited_refs:
+        kds_sheet      = proh_ref.get("kds_sheet")
+        kds_field_name = proh_ref.get("kds_field_name") or proh_ref.get("kds_columns")
+        source_cols    = proh_ref.get("source_columns", [])
+
+        if not kds_sheet or not source_cols or not kds_field_name:
+            print("  ⚠️   KDS prohibited reference missing required keys (kds_sheet, kds_field_name/kds_columns, source_columns) — skipped.")
+            continue
+
+        if kds_sheet not in kds_mappings:
+            print(f"  ⚠️   KDS sheet '{kds_sheet}' not found in mapping file — skipped.")
+            continue
+
+        try:
+            col_name, results = validate_kds_prohibited(
+                df, kds_mappings[kds_sheet], source_cols, label_map, kds_sheet,
+                kds_field_name=kds_field_name,
+            )
+            df[col_name] = results
+            print(f"  ✅  KDS Prohibited: '{kds_sheet}' / '{kds_field_name}'")
+        except (ValueError, KeyError) as exc:
+            print(f"  ⚠️   KDS Prohibited '{kds_sheet}': {exc} — skipped.")
+
     return matched, df
 
 
@@ -216,11 +241,11 @@ def _run_cross_sheet_validations(
             continue
 
         source_sheet = next(
-            (s for s in df_results if sheet_keyword.lower() in s.lower()),
+            (s for s in df_results if s.lower() == sheet_keyword.lower()),
             None,
         )
         if source_sheet is None:
-            print(f"  ⚠️   Cross-sheet: source sheet '{sheet_keyword}' not in results — skipped.")
+            print(f"  ⚠️   Cross-sheet: not found worksheet name: '{sheet_keyword}' — skipped.")
             continue
 
         source_df = df_results[source_sheet]
@@ -232,7 +257,7 @@ def _run_cross_sheet_validations(
             tgt_cols    = ref.get("target_columns", [])
 
             target_sheet = next(
-                (s for s in df_results if tgt_keyword.lower() in s.lower()),
+                (s for s in df_results if s.lower() == tgt_keyword.lower()),
                 None,
             )
             if target_sheet is None:

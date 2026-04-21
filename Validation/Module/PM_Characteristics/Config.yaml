@@ -1,0 +1,272 @@
+MODULE: "PM Characteristics"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/PM_Characteristics/[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Preload.xlsx"   
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "PM Characteristics"                         
+MAPPING_PATH:         "Metadata/Mapping/KDS_PM_Characteristics.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Data Cleansing.xlsx"                               
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+  - "REMARKS"
+  - "_DESCRIPTION"
+
+# ─── Jobs (one per worksheet) ────────────────────────────────────────────────
+JOBS:
+  - NAME:          "1. Characteristic"                 
+    SHEET_KEYWORD: "TH,MY_CABN_Characteristic"             
+    DS_TABLE:
+      - "CABN"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["ATINN_TGT", "ATNAM_TGT"]                         
+
+    FIXED_VALUE_FIELDS:
+      - column: "ATMST_TGT"
+        allowed_values:
+          - "1"
+      - column: "ATFOR_TGT"
+        allowed_values:
+          - "CHAR"
+          - "NUM"
+          - "CURR"
+          - "DATE"
+          - "TIME"
+      - column: "ATKLE_TGT"
+        allowed_values:
+          - "X"
+          - ""
+      - column: "ATEIN_TGT"
+        allowed_values:
+          - "X"
+          - ""
+      - column: "ATERF_TGT"
+        allowed_values:
+          - "X"
+          - ""
+
+    PROHIBITED_NEWLINE_FIELDS:
+      - "ATNAM_TGT"
+      - "ATBEZ"
+      - "ANZST_TGT"
+      - "ATEIN_TGT"
+      
+    NON_BLANK_OPTIONAL_FIELDS:     []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:        []
+    KDS_REFERENCES:
+      - kds_sheet: "THMMMY_TCMG"
+        kds_columns:
+          - "ATKLA_TGT"
+        source_columns:
+          - "ATKLA_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "ATKLA_SRC"
+          template_src_columns:      
+            - "ATKLA_SRC"
+      - kds_sheet: "THMMMY_T006"
+        kds_columns:
+          # - "SOURCE_TGT"
+          - "MSEHI_TGT"
+        source_columns:
+          # - "SOURCE"
+          - "MSEHI_TGT"
+        check_mapping:
+          kds_src_columns:         
+            # - "SOURCE_SRC"
+            - "MSEHI_SRC"
+          template_src_columns:      
+            # - "SOURCE"
+            - "MSEHI_SRC"
+      - kds_sheet: "THMMMY_TCMS"
+        kds_columns:
+          - "ATMST_TGT"
+        source_columns:
+          - "ATMST_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "ATMST_SRC"
+          template_src_columns:      
+            - "ATMST_SRC"
+
+
+    CUSTOM_VALIDATIONS:            []
+
+  - NAME:          "2. Characteristic Descriptions"                 
+    SHEET_KEYWORD: "TH,MY_CABNT_Char. Descriptions"             
+    DS_TABLE:
+      - "CABNT"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: 
+      - ["ATINN_TGT", "ATNAM"]                         
+
+    FIXED_VALUE_FIELDS:            []
+    PROHIBITED_NEWLINE_FIELDS:
+      - "ATNAM"
+      - "ATBEZ_TGT"
+    NON_BLANK_OPTIONAL_FIELDS:     []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:
+      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      - source_columns:       ["ATINN_TGT", "ATNAM"]
+        target_sheet_keyword: "TH,MY_CABN_Characteristic"
+        target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
+    KDS_REFERENCES:                []
+    CUSTOM_VALIDATIONS:            []
+
+  - NAME:          "3. Characteristic Value"                 
+    SHEET_KEYWORD: "TH,MY_CAWN_Characteristic Value"            
+    DS_TABLE:
+      - "CAWN"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: 
+      - ["ATINN", "ATNAM", "ATZHL_TGT", "ATWRT_TGT"]                         
+
+    FIXED_VALUE_FIELDS:            []
+    PROHIBITED_NEWLINE_FIELDS:
+      - "ATNAM"
+      - "ATBEZ"
+      - "ATWRT_TGT"
+    NON_BLANK_OPTIONAL_FIELDS:     []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:
+      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      - source_columns:       ["ATINN", "ATNAM"]
+        target_sheet_keyword: "TH,MY_CABN_Characteristic"
+        target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
+    KDS_REFERENCES:                []
+    CUSTOM_VALIDATIONS:            []
+
+  - NAME:          "4. Characteristic Value Texts"                  
+    SHEET_KEYWORD: "TH,MY_CAWNT_Value Texts"             
+    DS_TABLE:
+      - "CAWNT"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: 
+      - ["ATINN", "ATNAM", "ATZHL_TGT"]                         
+
+    FIXED_VALUE_FIELDS:            []
+    PROHIBITED_NEWLINE_FIELDS:
+      - "ATWTB_TGT"
+    NON_BLANK_OPTIONAL_FIELDS:     []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:
+      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      - source_columns:       ["ATINN", "ATNAM", "ATZHL_TGT"]
+        target_sheet_keyword: "TH,MY_CAWN_Characteristic Value"
+        target_columns:       ["ATINN", "ATNAM", "ATZHL_TGT"]
+
+    KDS_REFERENCES:                []
+    CUSTOM_VALIDATIONS:            []
+
+  - NAME:          "5. Characteristic of a Class"                 
+    SHEET_KEYWORD: "TH,MY_KSML_Char. of a Class"             
+    DS_TABLE:
+      - "KSML"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: 
+      - ["CLASS", "KLART_TGT", "ATNAM"]                         
+
+    FIXED_VALUE_FIELDS:
+      - column: "KLART_TGT"
+        allowed_values:
+          - "002"
+          - "003"
+          - "019"
+    PROHIBITED_NEWLINE_FIELDS:
+      - "ATNAM"
+      - "ATBEZ"
+      - "CLASS"
+    NON_BLANK_OPTIONAL_FIELDS:
+      - "ATNAM"
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:
+      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      - source_columns:       ["IMERK_TGT", "ATNAM"]
+        target_sheet_keyword: "TH,MY_CABN_Characteristic"
+        target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
+
+    KDS_REFERENCES:                []
+    CUSTOM_VALIDATIONS:            []
+
+  - NAME:          "6. Characteristic of a Class DCT"                  
+    SHEET_KEYWORD: "TH,MY_KSML_Char. of a Class DCT"             
+    DS_TABLE:
+      - "KSML"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: 
+      # - ["CLINT_TGT", "IMERK_TGT"]  
+      - ["CLASS", "KLART_TGT", "ATNAM"]                          
+
+    FIXED_VALUE_FIELDS:
+      - column: "KLART_TGT"
+        allowed_values:
+          - "002"
+          - "003"
+          - "019"
+    PROHIBITED_NEWLINE_FIELDS:
+      - "ATNAM"
+      - "ATBEZ"
+      - "CLASS"
+    NON_BLANK_OPTIONAL_FIELDS:
+      - "ATNAM"
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:
+      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      - source_columns:       ["IMERK_TGT", "ATNAM"]
+        target_sheet_keyword: "TH,MY_CABN_Characteristic"
+        target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
+
+    KDS_REFERENCES:
+      - kds_sheet:  "DCT219"
+        kds_columns:
+          - "CLASS_TGT"
+          - "ATNAM_TGT"
+          - "ATBEZ_TGT"
+        source_columns:
+          - "CLASS"
+          - "ATNAM"
+          - "ATBEZ" 
+    CUSTOM_VALIDATIONS:            []
+
+
+

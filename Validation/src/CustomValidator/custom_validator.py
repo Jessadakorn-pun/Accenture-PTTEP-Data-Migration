@@ -102,21 +102,17 @@ def check_between_time(inputs: dict):
     if end_date == "00000000":
         end_date = ""
 
-    # All blank → nothing to check
-    if not any([start_date, start_time, end_date, end_time]):
+    # All dates blank → nothing to check (time fields are optional)
+    if not start_date and not end_date:
         return None
 
-    missing = [
-        k for k, v in {
-            "start_date": start_date,
-            "start_time": start_time,
-            "end_date":   end_date,
-            "end_time":   end_time,
-        }.items()
-        if not v
-    ]
-    if missing:
-        return "Missing field(s): " + ", ".join(f"{{{f}}}" for f in missing)
+    # Date fields are required — time fields are optional (default 00:00:00)
+    missing_dates = [k for k, v in {"start_date": start_date, "end_date": end_date}.items() if not v]
+    if missing_dates:
+        return "Missing field(s): " + ", ".join(f"{{{f}}}" for f in missing_dates)
+
+    start_time = start_time or "00:00:00"
+    end_time   = end_time   or "00:00:00"
 
     try:
         start_dt = datetime.strptime(f"{start_date} {start_time}", "%Y%m%d %H:%M:%S")

@@ -634,6 +634,82 @@ def validate_kds_mapping(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# KDS prohibited reference validation (blacklist — reversed logic)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def validate_kds_prohibited(
+    df: pd.DataFrame,
+    kds_df: pd.DataFrame,
+    source_columns: list,
+    label_map: dict,
+    kds_name: str,
+    kds_field_name=None,
+) -> tuple:
+    """
+    Validate that template values do NOT exist in a KDS reference table (blacklist).
+
+    Reversed logic vs validate_kds_reference:
+        - Value found in KDS     → ❌ FAIL  (prohibited)
+        - Value not in KDS       → ✅ PASS
+        - All source cols blank  → ✅ PASS  (skip)
+
+    Accepts kds_field_name as str (single column) or list (composite key).
+
+    Returns:
+        (result_column_name: str, results: list[str])
+    """
+    if kds_field_name is None:
+        raise ValueError(
+            f"KDS prohibited reference '{kds_name}': 'kds_field_name' or 'kds_columns' is required."
+        )
+
+    kds_field_names = (
+        kds_field_name if isinstance(kds_field_name, list)
+        else [kds_field_name] * len(source_columns)
+    )
+
+    if len(kds_field_names) != len(source_columns):
+        raise ValueError(
+            f"KDS prohibited reference '{kds_name}': kds_field_name count ({len(kds_field_names)}) "
+            f"must match source_columns count ({len(source_columns)})."
+        )
+
+    col_map = {}
+    for src_col, kds_col in zip(source_columns, kds_field_names):
+        if kds_col not in kds_df.columns:
+            raise ValueError(
+                f"KDS sheet '{kds_name}': column '{kds_col}' not found. "
+                f"Available columns: {list(kds_df.columns)}"
+            )
+        col_map[src_col] = kds_col
+
+    results = []
+    for _, row in df.iterrows():
+        all_blank = all(str(row.get(c, "")).strip() == "" for c in source_columns)
+        if all_blank:
+            results.append(PASS)
+            continue
+
+        condition = pd.Series([True] * len(kds_df))
+        for src_col, kds_col in col_map.items():
+            condition &= kds_df[kds_col].str.strip() == str(row.get(src_col, "")).strip()
+
+        if condition.any():
+            desc_parts = [
+                f"{src_col}: '{str(row.get(src_col, '')).strip()}'"
+                for src_col in source_columns
+            ]
+            results.append(
+                f"{FAIL} {', '.join(desc_parts)} is prohibited (found in KDS '{kds_name}')"
+            )
+        else:
+            results.append(PASS)
+
+    col_name = f"Check KDS Prohibited: {' + '.join(source_columns)} in '{kds_name}'"
+    return col_name, results
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Overall result rollup
 # ─────────────────────────────────────────────────────────────────────────────
 

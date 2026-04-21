@@ -259,6 +259,41 @@ KDS sheet:
 
 ---
 
+### 9d. KDS Prohibited Reference (`KDS_PROHIBITED_REFERENCES`)
+
+The **reverse** of `KDS_REFERENCES` — validation **fails** if the value *is found* in the KDS table. Used for blacklists.
+
+**Config:**
+```yaml
+KDS_PROHIBITED_REFERENCES:
+  - kds_sheet: "BLACKLIST"
+    source_columns: ["ARTPR_TGT"]
+    # optional: kds_field_name or kds_columns to specify which KDS column(s) to match
+```
+
+KDS sheet `"BLACKLIST"`:
+
+| ARTPR_TOBE |
+|---|
+| PM99 |
+| PM00 |
+
+| ARTPR_TGT | Result |
+|---|---|
+| `"PM01"` | `✅` (not in blacklist) |
+| `"PM99"` | `❌ ARTPR_TGT: 'PM99' is prohibited (found in KDS 'BLACKLIST')` |
+| `""` (blank) | `✅` (skip) |
+
+**Composite key:**
+
+| COL_A | COL_B | Result |
+|---|---|---|
+| `"X"` | `"Y"` | `❌` (tuple found in blacklist KDS) |
+| `"X"` | `"Z"` | `✅` (tuple not in blacklist KDS) |
+| `""` | `""` | `✅` (all blank → skip) |
+
+---
+
 ### 10. Custom Validators (`CUSTOM_VALIDATIONS`)
 
 Business-logic validators applied to specific columns.
@@ -341,7 +376,7 @@ Validates that start datetime is not after end datetime.
 Date format: `YYYYMMDD`, Time format: `HH:MM:SS`.
 `00000000` in date fields is treated as blank.
 
-All four fields (`start_date`, `start_time`, `end_date`, `end_time`) must be provided together.
+Date fields (`start_date`, `end_date`) are **required** if either is filled. Time fields (`start_time`, `end_time`) are **optional** — default to `00:00:00` when blank.
 
 | start_date | start_time | end_date | end_time | Result |
 |---|---|---|---|---|
@@ -349,8 +384,9 @@ All four fields (`start_date`, `start_time`, `end_date`, `end_time`) must be pro
 | `"00000000"` | `""` | `"00000000"` | `""` | `✅` (treated as blank → skip) |
 | `"20251001"` | `"08:00:00"` | `"20251001"` | `"17:00:00"` | `✅` |
 | `"20251001"` | `"08:00:00"` | `"20251001"` | `"08:00:00"` | `✅` (equal = pass) |
+| `"20251001"` | `""` | `"20251001"` | `""` | `✅` (time defaults to `00:00:00`) |
 | `"20251001"` | `"17:00:00"` | `"20251001"` | `"08:00:00"` | `❌ Start datetime '20251001 17:00:00' is after end datetime '20251001 08:00:00'` |
-| `"20251001"` | `""` | `"20251001"` | `"17:00:00"` | `❌ Missing field(s): {start_time}` |
+| `"20251001"` | `""` | `""` | `""` | `❌ Missing field(s): end_date` |
 | `"invalid"` | `"08:00:00"` | `"20251001"` | `"17:00:00"` | `❌ Invalid datetime: start='invalid 08:00:00', end='20251001 17:00:00' (expect YYYYMMDD HH:MM:SS)` |
 
 ---
@@ -407,7 +443,7 @@ IGNORE_COLUMN_SUFFIXES:
 # ── Jobs (one per worksheet) ──────────────────────────────────────────────────
 JOBS:
   - NAME:          "Maintenance Order Header"
-    SHEET_KEYWORD: "Maintenance Order Header"  # substring match against sheet names
+    SHEET_KEYWORD: "Maintenance Order Header"  # exact match against sheet names
     DS_TABLE:      "AFIH"                      # SAP table filter in Data Standard
                                                # Use a list for multi-table:
                                                #   DS_TABLE:
@@ -464,6 +500,12 @@ JOBS:
           kds_src_columns:        ["PLANT_SRC", "TYPE_SRC"]
           template_src_columns:   ["IWERK_SRC", "ARTPR_SRC"]
 
+    KDS_PROHIBITED_REFERENCES:
+      # Fails if value IS found in the KDS table (blacklist)
+      - kds_sheet: "BLACKLIST_CODES"
+        source_columns: ["ARTPR_TGT"]
+        # kds_field_name: "ARTPR_TOBE"   # optional; defaults to same column header
+
     CUSTOM_VALIDATIONS:
       # Single-column validators
       - check_ad_date:
@@ -482,9 +524,9 @@ JOBS:
       # Multi-column validator
       - check_between_time:
           - start_date: ANLBD_TGT
-            start_time: ANLBZ_TGT
+            start_time: ANLBZ_TGT    # optional — defaults to 00:00:00 if blank
             end_date:   ANLVD_TGT
-            end_time:   ANLVZ_TGT
+            end_time:   ANLVZ_TGT    # optional — defaults to 00:00:00 if blank
 
       # Dict-input validator
       - check_startup_date:
@@ -561,4 +603,5 @@ No changes to `src/` are required.
 | Cross-Sheet Ref | `Check Cross-Sheet: COL in SheetName` |
 | KDS | `Check KDS Mapping: COL in 'KDS_SHEET'` |
 | KDS SRC→TGT | `Check KDS Mapping (SRC→TGT): SRC_COL → TGT_COL in 'KDS_SHEET'` |
+| KDS Prohibited | `Check KDS Prohibited: COL in 'KDS_SHEET'` |
 | Custom | `Check COL_TGT (check_ad_date) Format` |
