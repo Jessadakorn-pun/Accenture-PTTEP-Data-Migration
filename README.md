@@ -246,6 +246,17 @@ START_WITH_FIELDS:
   - column: "EQKTX_TGT"
     prefix: "eq"
     case_sensitive: false    # default: true
+
+  # Conditional — only check rows where SOURCE is in ["TH", "MM"]
+  - column: "CLASS"
+    prefix:
+      - "ZFL-"
+      - "ZEQ-"
+    condition:
+      column: "SOURCE"
+      values:
+        - "TH"
+        - "MM"
 ```
 
 **Test cases** (single prefix `"TH-"`):
@@ -266,6 +277,17 @@ START_WITH_FIELDS:
 | `"MY-5678"` | `✅` |
 | `"SG-9999"` | `❌ KOSTL_TGT: 'SG-9999' must start with one of ['TH-', 'MY-']` |
 | `""` (blank) | `✅` (skip) |
+
+**Test cases** (conditional, `condition.column=SOURCE`, `condition.values=["TH","MM"]`):
+
+| SOURCE | CLASS | Result |
+|---|---|---|
+| `"TH"` | `"ZFL-001"` | `✅` |
+| `"TH"` | `"ZOT-999"` | `❌ CLASS: 'ZOT-999' must start with one of ['ZFL-', 'ZEQ-']` |
+| `"MM"` | `"ZEQ-002"` | `✅` |
+| `"SG"` | `"ZOT-999"` | `✅` (SOURCE not in condition → skip) |
+| `""` | `"ZOT-999"` | `✅` (SOURCE blank → skip) |
+| `"TH"` | `""` | `✅` (CLASS blank → skip) |
 
 ---
 

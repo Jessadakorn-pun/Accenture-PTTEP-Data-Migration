@@ -756,13 +756,23 @@ def validate_start_with(
         result_col     = f"Check {col} starts with \"{display_prefix}\""
         results        = []
 
+        cond_col    = rule.get("condition", {}).get("column")
+        cond_values = [str(v).strip() for v in rule.get("condition", {}).get("values", [])]
+
         for _, row in df.iterrows():
+            # condition check — skip row if condition column not in allowed values
+            if cond_col and cond_col in df.columns:
+                row_cond_val = str(row.get(cond_col, "")).strip()
+                if not row_cond_val or row_cond_val not in cond_values:
+                    results.append(PASS)
+                    continue
+
             val = str(row.get(col, "")).strip()
             if not val:
                 results.append(PASS)
                 continue
 
-            check_val     = val if case_sensitive else val.upper()
+            check_val      = val if case_sensitive else val.upper()
             check_pfx_list = prefixes if case_sensitive else [p.upper() for p in prefixes]
 
             if any(check_val.startswith(p) for p in check_pfx_list):
