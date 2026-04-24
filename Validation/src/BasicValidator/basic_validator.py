@@ -557,6 +557,7 @@ def validate_kds_mapping(
     template_tgt_columns: list,
     label_map: dict,
     kds_name: str,
+    condition=None,
 ) -> tuple:
     """
     Validate that the SRC→TGT mapping in the template matches the KDS reference table.
@@ -587,6 +588,10 @@ def validate_kds_mapping(
 
     results = []
     for _, row in df.iterrows():
+        if not _meets_condition(row, condition):
+            results.append(PASS)
+            continue
+
         src_vals = [str(row.get(c, "")).strip() for c in template_src_columns]
         tgt_vals = [str(row.get(c, "")).strip() for c in template_tgt_columns]
 

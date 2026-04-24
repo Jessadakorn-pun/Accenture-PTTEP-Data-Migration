@@ -198,6 +198,7 @@ def _run_job(
                         kds_src_cols, tmpl_src_cols,
                         kds_tgt_cols, source_cols,
                         label_map, kds_sheet,
+                        condition=kds_condition,
                     )
                     df[map_col] = map_results
                     print(f"  ✅  KDS Mapping (SRC→TGT): '{kds_sheet}'")
