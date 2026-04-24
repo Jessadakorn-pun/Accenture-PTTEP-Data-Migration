@@ -1,0 +1,96 @@
+MODULE: "PM Class & Class Hierarchy"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/PM_Class_Class_Hierarchy/[SHANA] MNT-PM-M002_PM Class & Class Hierarchy_TH_Preload.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "PM Class and Class Hierarchy"
+MAPPING_PATH:         "Metadata/Mapping/KDS_PM_Class_Class_Hierarchy.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "[SHANA] MNT-PM-M002_PM Class & Class Hierarchy_TH,MM_Data Cleansing.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "_DESCRIPTION"
+  - "SOURCE"
+  - "REMARKS"
+  - "COUNTRY"
+
+# ─── Jobs (one per worksheet) ────────────────────────────────────────────────
+JOBS:
+  - NAME:          "1. Class Header Data"
+    SHEET_KEYWORD: "TH_KLAH_Class Header Data"
+    DS_TABLE:
+      - "KLAH"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["KLART_TGT", "CLASS_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "KLART_TGT"
+        allowed_values:
+          - "002"
+          - "003"
+          - "019"
+      - column: "STATU_TGT"         # Class status — verify actual allowed values
+        allowed_values:
+          - "1"
+          - "2"
+          - "3"
+      - column: "PRAUS_TGT"         # Release authorization — verify actual allowed values
+        allowed_values:
+          - "0"
+          - "1"
+
+    PROHIBITED_NEWLINE_FIELDS:
+      - "CLASS_TGT"
+
+    NON_BLANK_OPTIONAL_FIELDS:     []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    START_WITH_FIELDS:             []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:        []
+    KDS_REFERENCES:                []
+    KDS_PROHIBITED_REFERENCES:     []
+
+    CUSTOM_VALIDATIONS:
+      - check_ad_date:
+          - VONDT_TGT
+          - BISDT_TGT
+
+  - NAME:          "2. Classification System (Keywords)"
+    SHEET_KEYWORD: "TH_SWOR_Classification System"
+    DS_TABLE:
+      - "SWOR"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["CLINT_TGT", "SPRAS_TGT", "KSCHL_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "SPRAS_TGT"         # Language key — verify actual allowed values
+        allowed_values:
+          - "T"                     # Thai
+          - "E"                     # English
+
+    PROHIBITED_NEWLINE_FIELDS:
+      - "KSCHL_TGT"
+
+    NON_BLANK_OPTIONAL_FIELDS:     []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    START_WITH_FIELDS:             []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:        []
+    KDS_REFERENCES:                []
+    KDS_PROHIBITED_REFERENCES:     []
+    CUSTOM_VALIDATIONS:            []

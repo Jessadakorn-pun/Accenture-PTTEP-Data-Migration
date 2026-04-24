@@ -45,6 +45,7 @@ from basic_validator import (
     validate_kds_reference,
     validate_kds_mapping,
     validate_kds_prohibited,
+    validate_kds_completeness,
     validate_cross_sheet_reference,
     add_overall_result,
 )
@@ -200,6 +201,33 @@ def _run_job(
                     print(f"  ✅  KDS Mapping (SRC→TGT): '{kds_sheet}'")
                 except (ValueError, KeyError) as exc:
                     print(f"  ⚠️   KDS Mapping '{kds_sheet}': {exc} — skipped.")
+
+    # ── KDS Completeness References (all KDS values must exist in template) ──
+    completeness_refs = job_config.get("KDS_COMPLETENESS_REFERENCES", [])
+    for comp_ref in completeness_refs:
+        kds_sheet      = comp_ref.get("kds_sheet")
+        kds_field_name = comp_ref.get("kds_field_name")
+        source_col     = comp_ref.get("source_column")
+
+        condition      = comp_ref.get("condition")
+
+        if not kds_sheet or not kds_field_name or not source_col:
+            print("  ⚠️   KDS completeness missing required keys (kds_sheet, kds_field_name, source_column) — skipped.")
+            continue
+
+        if kds_sheet not in kds_mappings:
+            print(f"  ⚠️   KDS sheet '{kds_sheet}' not found in mapping file — skipped.")
+            continue
+
+        try:
+            col_name, results = validate_kds_completeness(
+                df, kds_mappings[kds_sheet], source_col, label_map, kds_sheet, kds_field_name,
+                condition=condition,
+            )
+            df[col_name] = results
+            print(f"  ✅  KDS Completeness: '{kds_sheet}' / '{kds_field_name}'")
+        except (ValueError, KeyError) as exc:
+            print(f"  ⚠️   KDS Completeness '{kds_sheet}': {exc} — skipped.")
 
     # ── KDS Prohibited References (blacklist — value must NOT exist in KDS) ──
     prohibited_refs = job_config.get("KDS_PROHIBITED_REFERENCES", [])

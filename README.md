@@ -459,6 +459,66 @@ KDS sheet:
 
 ---
 
+### 9e. KDS Completeness Check (`KDS_COMPLETENESS_REFERENCES`)
+
+Checks that the template column contains **every value** listed in the KDS table (sheet-level, not row-level).
+If any KDS value is missing from the template → **all rows** get `❌`.
+
+**Config:**
+```yaml
+KDS_COMPLETENESS_REFERENCES:
+  # No condition — check all rows
+  - kds_sheet:      "REQUIRED_CODES"
+    kds_field_name: "CODE_TOBE"       # column in KDS sheet
+    source_column:  "CODE_TGT"        # column in template to check against
+
+  # Single condition — only check rows where SOURCE = "PE1"
+  - kds_sheet:      "REQUIRED_CODES"
+    kds_field_name: "CODE_TOBE"
+    source_column:  "CODE_TGT"
+    condition:
+      column: "SOURCE"
+      values: ["PE1"]
+
+  # Multi-condition AND — only rows where SOURCE = "PE1" AND KLART_TGT in ["002","003"]
+  - kds_sheet:      "REQUIRED_CODES"
+    kds_field_name: "CODE_TOBE"
+    source_column:  "CODE_TGT"
+    condition:
+      - column: "SOURCE"
+        values: ["PE1"]
+      - column: "KLART_TGT"
+        values: ["002", "003"]
+```
+
+KDS sheet `"REQUIRED_CODES"`:
+
+| CODE_TOBE |
+|---|
+| A |
+| B |
+| C |
+
+**No condition** — all rows considered:
+
+| Template CODE_TGT (unique values) | Result (all rows) |
+|---|---|
+| `[A, B, C]` | `✅` (all KDS values present) |
+| `[A, B, C, D]` | `✅` (extra values in template are fine) |
+| `[A, B]` | `❌ Missing values from KDS 'REQUIRED_CODES': ['C']` |
+| `[]` (all blank) | `❌ Missing values from KDS 'REQUIRED_CODES': ['A', 'B', 'C']` |
+
+**With condition** (`SOURCE = "PE1"`):
+
+| SOURCE | CODE_TGT | Result |
+|---|---|---|
+| `"PE1"` | (any) | same group result as above, based on PE1 rows only |
+| `"SG"` | (any) | `✅` (condition not met → skip) |
+
+> **Note:** Blank values in `source_column` are ignored when collecting unique values. Rows not meeting the condition always get `✅`.
+
+---
+
 ### 9d. KDS Prohibited Reference (`KDS_PROHIBITED_REFERENCES`)
 
 The **reverse** of `KDS_REFERENCES` — validation **fails** if the value *is found* in the KDS table. Used for blacklists.
@@ -853,4 +913,5 @@ No changes to `src/` are required.
 | KDS | `Check KDS Mapping: COL in 'KDS_SHEET'` |
 | KDS SRC→TGT | `Check KDS Mapping (SRC→TGT): SRC_COL → TGT_COL in 'KDS_SHEET'` |
 | KDS Prohibited | `Check KDS Prohibited: COL in 'KDS_SHEET'` |
+| KDS Completeness | `Check KDS Completeness: COL covers 'KDS_SHEET'` |
 | Custom | `Check COL_TGT (check_ad_date) Format` |

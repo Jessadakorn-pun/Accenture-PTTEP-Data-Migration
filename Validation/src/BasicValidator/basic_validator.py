@@ -814,6 +814,74 @@ def validate_start_with(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# KDS completeness check (sheet-level — all KDS values must exist in template)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def validate_kds_completeness(
+    df: pd.DataFrame,
+    kds_df: pd.DataFrame,
+    source_column: str,
+    label_map: dict,
+    kds_name: str,
+    kds_field_name: str,
+    condition=None,
+) -> tuple:
+    """
+    Check that every value in the KDS column appears at least once in the template column.
+
+    This is a sheet-level check (not row-level):
+        - If condition is given, only rows satisfying it are considered.
+          Rows not meeting the condition → PASS (skip).
+        - Among condition-meeting rows, collect unique non-blank values from source_column.
+        - Find KDS values missing from that set.
+        - If any missing → all condition-meeting rows get ❌ with the missing value list.
+        - If complete  → all condition-meeting rows get ✅.
+
+    condition: None | dict {column, values} | list of dicts (AND logic)
+
+    Returns:
+        (result_column_name: str, results: list[str])
+
+    Raises:
+        ValueError — if kds_field_name or source_column not found.
+    """
+    if kds_field_name not in kds_df.columns:
+        raise ValueError(
+            f"KDS sheet '{kds_name}': column '{kds_field_name}' not found. "
+            f"Available: {list(kds_df.columns)}"
+        )
+    if source_column not in df.columns:
+        raise ValueError(f"Source column '{source_column}' not found in template.")
+
+    kds_values = set(kds_df[kds_field_name].dropna().astype(str).str.strip())
+    kds_values.discard("")
+
+    # Determine which rows meet the condition
+    row_meets = [_meets_condition(row, condition) for _, row in df.iterrows()]
+
+    # Collect unique values only from rows that meet the condition
+    template_values = set()
+    for meets, (_, row) in zip(row_meets, df.iterrows()):
+        if meets:
+            val = str(row.get(source_column, "")).strip()
+            if val:
+                template_values.add(val)
+
+    missing = sorted(kds_values - template_values)
+    group_result = (
+        f"{FAIL} Missing values from KDS '{kds_name}': {missing}" if missing else PASS
+    )
+
+    results = [
+        group_result if meets else PASS
+        for meets in row_meets
+    ]
+
+    col_name = f"Check KDS Completeness: {source_column} covers '{kds_name}'"
+    return col_name, results
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Overall result rollup
 # ─────────────────────────────────────────────────────────────────────────────
 
