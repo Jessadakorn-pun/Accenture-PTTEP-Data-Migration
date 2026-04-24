@@ -161,6 +161,7 @@ def _run_job(
         # kds_columns    (list) → composite/tuple match
         kds_field_name = kds_ref.get("kds_field_name") or kds_ref.get("kds_columns")
         source_cols    = kds_ref.get("source_columns", [])
+        kds_condition  = kds_ref.get("condition")
 
         if not kds_sheet or not source_cols or not kds_field_name:
             print("  ⚠️   KDS reference missing required keys (kds_sheet, kds_field_name/kds_columns, source_columns) — skipped.")
@@ -174,6 +175,7 @@ def _run_job(
             col_name, results = validate_kds_reference(
                 df, kds_mappings[kds_sheet], source_cols, label_map, kds_sheet,
                 kds_field_name=kds_field_name,
+                condition=kds_condition,
             )
             df[col_name] = results
             print(f"  ✅  KDS Reference: '{kds_sheet}' / '{kds_field_name}'")

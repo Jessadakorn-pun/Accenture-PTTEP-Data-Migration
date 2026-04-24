@@ -372,6 +372,14 @@ KDS_REFERENCES:
   - kds_sheet:      "DT03"
     kds_field_name: "ARTPR_TOBE"    # column name in the KDS sheet
     source_columns: ["ARTPR_TGT"]   # column name in the template
+
+  # Optional condition — only validate rows where SOURCE = "PE1"
+  - kds_sheet:      "DT03"
+    kds_field_name: "ARTPR_TOBE"
+    source_columns: ["ARTPR_TGT"]
+    condition:                       # single condition (dict) or multi (list, AND logic)
+      column: "SOURCE"
+      values: ["PE1"]
 ```
 
 KDS sheet `"DT03"`:
@@ -399,6 +407,11 @@ KDS_REFERENCES:
     source_columns:            # corresponding template columns (same order)
       - "IWERK_TGT"
       - "ARTPR_TGT"
+    condition:                 # optional — single dict or list of dicts (AND)
+      - column: "SOURCE"
+        values: ["TH", "MM"]
+      - column: "KLART_TGT"
+        values: ["002", "003"]
 ```
 
 KDS sheet:

@@ -464,6 +464,7 @@ def validate_kds_reference(
     label_map: dict,
     kds_name: str,
     kds_field_name: str = None,
+    condition=None,
 ) -> tuple:
     """
     Validate field values against a KDS reference table.
@@ -515,16 +516,20 @@ def validate_kds_reference(
 
     results = []
     for _, row in df.iterrows():
+        if not _meets_condition(row, condition):
+            results.append(PASS)
+            continue
+
         all_blank = all(str(row.get(c, "")).strip() == "" for c in source_columns)
         if all_blank:
             results.append(PASS)
             continue
 
-        condition = pd.Series([True] * len(kds_df))
+        kds_cond = pd.Series([True] * len(kds_df))
         for src_col, kds_col in col_map.items():
-            condition &= kds_df[kds_col].str.strip() == str(row.get(src_col, "")).strip()
+            kds_cond &= kds_df[kds_col].str.strip() == str(row.get(src_col, "")).strip()
 
-        if condition.any():
+        if kds_cond.any():
             results.append(PASS)
         else:
             desc_parts = [
