@@ -643,11 +643,11 @@ def validate_kds_mapping(
             continue
 
         # Case 4: find KDS row matching SRC combination
-        condition = pd.Series([True] * len(kds_df))
+        kds_cond = pd.Series([True] * len(kds_df))
         for kds_col, src_val in zip(kds_src_columns, src_vals):
-            condition &= kds_df[kds_col].str.strip() == src_val
+            kds_cond &= kds_df[kds_col].str.strip() == src_val
 
-        matched_rows = kds_df[condition]
+        matched_rows = kds_df[kds_cond]
         if matched_rows.empty:
             src_display = ", ".join(
                 f"({c})='{v}'" for c, v in zip(template_src_columns, src_vals)
