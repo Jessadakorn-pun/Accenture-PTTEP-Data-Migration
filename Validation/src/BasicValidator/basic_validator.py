@@ -245,8 +245,7 @@ def validate_fixed_values(
         if not col or col not in df.columns:
             continue
 
-        label      = label_map.get(col, col)
-        result_col = f"Check value fix field on {label}"
+        result_col = f"Check value fix field on {col}"
         results    = []
 
         for _, row in df.iterrows():
@@ -257,7 +256,7 @@ def validate_fixed_values(
             if not val or val in allowed:
                 results.append(PASS)
             else:
-                results.append(f"{FAIL} {label}: value '{val}' not in allowed list {allowed}")
+                results.append(f"{FAIL} {col}: value '{val}' not in allowed list {allowed}")
 
         df[result_col] = results
 
@@ -448,8 +447,7 @@ def validate_cross_sheet_reference(
         else:
             results.append(f"{FAIL} {key} not found in sheet '{target_sheet_name}'")
 
-    readable   = [label_map.get(c, c) for c in source_columns]
-    col_name   = f"Check Cross-Sheet: {' + '.join(readable)} in {target_sheet_name}"
+    col_name   = f"Check Cross-Sheet: {' + '.join(source_columns)} in {target_sheet_name}"
     return col_name, results
 
 
