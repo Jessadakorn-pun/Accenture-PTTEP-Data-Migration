@@ -1,12 +1,12 @@
-MODULE: "Work Center THMM"
+MODULE: "Work Center MY"
 
 # ─── File locations (relative to project root) ──────────────────────────────
-TEMPLATE_PATH:        "Module/Work_Center/MC1_MNT-PM-M005_PM Work Center_THMM_Preload_V2.xlsx" 
+TEMPLATE_PATH:        "Module/Work_Center/MC1_MNT-PM-M005_PM Work Center_MY_Preload_V2.xlsx" 
 DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
 DATA_STANDARD_SHEET:  "Work Center"                          
 MAPPING_PATH:         "Metadata/Mapping/KDS_ALL_MAPPING.xlsx"
 OUTPUT_PATH:          "Output"
-OUTPUT_FILE_NAME:     "MC1_MNT-PM-M005_PM Work Center_THMM_Preload_V2 Data Cleansing.xlsx"                      
+OUTPUT_FILE_NAME:     "MC1_MNT-PM-M005_PM Work Center_MY_Preload_V2 Data Cleansing.xlsx"                      
 
 # ─── Ignore configuration ────────────────────────────────────────────────────
 CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
@@ -60,6 +60,11 @@ JOBS:
           - "MY07"
           - "2901"
           - "1401"
+
+      # MY - Person Responsible for the Work Cente - Default ""
+      - column: "VERAN_TGT"
+        allowed_values:
+          - ""
       
       # Control Key (STEUS) Default: PM01
       - column: "STEUS_TGT"
@@ -78,7 +83,7 @@ JOBS:
 
     KDS_REFERENCES:
       # Plant
-      - kds_sheet: "THMM_T001W"
+      - kds_sheet: "MY_T001W"
         kds_columns:
           - "WERKS_TGT"
         source_columns:
@@ -90,7 +95,7 @@ JOBS:
             - "WERKS_SRC"
 
       # Work Center Category
-      - kds_sheet: "THMM_TC30"
+      - kds_sheet: "MY_TC30"
         kds_columns:
           - "VERWE_TGT"
         source_columns:
@@ -102,7 +107,7 @@ JOBS:
             - "VERWE_SRC"
 
       # Formula for set up time
-      - kds_sheet: "THMM_TC23"
+      - kds_sheet: "MY_TC23"
         kds_columns:
           - "PLANV_TGT"
         source_columns:
@@ -114,7 +119,7 @@ JOBS:
             - "PLANV_SRC"
       
       # Standard Value Key
-      - kds_sheet: "THMM_TC21"
+      - kds_sheet: "MY_TC21"
         kds_columns:
           - "VGWTS_TGT"
         source_columns:
@@ -126,7 +131,7 @@ JOBS:
             - "VGWTS_SRC"
 
        # Formula for setup time
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -138,7 +143,7 @@ JOBS:
             - "FORT1_SRC"
       
       # Formula for the duration of processing time
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -150,7 +155,7 @@ JOBS:
             - "FORT2_SRC"
 
       # Formula for teardown time
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -161,7 +166,7 @@ JOBS:
           template_src_columns:      
             - "FORT3_SRC"
       # Formula for the duration of other types of int. processing
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -176,7 +181,7 @@ JOBS:
     KDS_PROHIBITED_REFERENCES:
       # Exclude work centers listed in the 'RR_TH_Deleted WC' tab (refer to the PM Work Center Data Standard), 
       # using the Plant and Work Center combination as the reference key
-      - kds_sheet: "THMM_WERK_ARBPL_EXC"
+      - kds_sheet: "MY_WERK_ARBPL_EXC"
         kds_columns:
           - "WERKS_TGT"
           - "ARBPL_TGT"
@@ -256,7 +261,7 @@ JOBS:
         
     KDS_REFERENCES:
       # Formula key for costing
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -268,7 +273,7 @@ JOBS:
             - "FORML_SRC"
 
       # Cost Center
-      - kds_sheet: "THMM_KOSTL"
+      - kds_sheet: "MY_KOSTL"
         kds_columns:
           - "KOSTL_TGT"
         source_columns:
@@ -279,8 +284,8 @@ JOBS:
           template_src_columns:      
             - "KOSTL_SRC"
       
-      # THMM - Activity Type
-      - kds_sheet: "THMM_ActType"
+      # MY - Activity Type
+      - kds_sheet: "MY_KOSTL"
         kds_columns:
           - "LSTAR_TGT"
         source_columns:
@@ -290,6 +295,7 @@ JOBS:
             - "LSTAR_SRC"
           template_src_columns:      
             - "LSTAR_SRC"
+    
 
     KDS_PROHIBITED_REFERENCES:     [] 
 
@@ -343,7 +349,7 @@ JOBS:
 
     KDS_REFERENCES:
       # Formula for Setup Capacity Requirements
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -355,7 +361,7 @@ JOBS:
             - "FORK1_SRC"
       
       # Formula for Processing Capacity Requirements
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -367,7 +373,7 @@ JOBS:
             - "FORK2_SRC"
 
       # Formula for Teardown Capacity Requirements
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -379,7 +385,7 @@ JOBS:
             - "FORK3_SRC"
 
       # Formula for Other Capacity Requirements
-      - kds_sheet: "THMM_TC25"
+      - kds_sheet: "MY_TC25"
         kds_columns:
           - "FORT1_TGT"
         source_columns:
@@ -415,6 +421,11 @@ JOBS:
       - column: "PLANR_TGT"
         allowed_values:
           - "PM"
+      
+      # MY - Default Capacity Utilization to “100” - dtype NUMC(3)
+      - column: "NGRAD_TGT"
+        allowed_values:
+          - "100"
 
     PROHIBITED_NEWLINE_FIELDS:     [] 
     NON_BLANK_OPTIONAL_FIELDS:     [] 
@@ -429,7 +440,7 @@ JOBS:
 
     KDS_REFERENCES:
       # Plant
-      - kds_sheet: "THMM_T001W"
+      - kds_sheet: "MY_T001W"
         kds_columns:
           - "WERKS_TGT"
         source_columns:

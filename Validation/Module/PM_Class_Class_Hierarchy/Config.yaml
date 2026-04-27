@@ -1,12 +1,12 @@
 MODULE: "PM Class & Class Hierarchy"
 
 # ─── File locations (relative to project root) ──────────────────────────────
-TEMPLATE_PATH:        "Module/PM_Class_Class_Hierarchy/[SHANA] MNT-PM-M002_PM Class & Class Hierarchy_TH_Preload.xlsx"
+TEMPLATE_PATH:        "Module/PM_Class_Class_Hierarchy/MC2_MNT-PM-M002_PM Class & Class Hierarchy_TH_Preload.xlsx"
 DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
 DATA_STANDARD_SHEET:  "PM Class and Class Hierarchy"
-MAPPING_PATH:         "Metadata/Mapping/KDS_PM_Class_Class_Hierarchy.xlsx"
+MAPPING_PATH:         "Metadata/Mapping/KDS_ALL_MAPPING.xlsx"
 OUTPUT_PATH:          "Output"
-OUTPUT_FILE_NAME:     "[SHANA] MNT-PM-M002_PM Class & Class Hierarchy_TH,MM_Data Cleansing.xlsx"
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M002_PM Class & Class Hierarchy_TH_Data Cleansing.xlsx"
 
 # ─── Ignore configuration ────────────────────────────────────────────────────
 CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
@@ -34,36 +34,70 @@ JOBS:
       - ["KLART_TGT", "CLASS_TGT"]
 
     FIXED_VALUE_FIELDS:
+      # THMM - Migrate Class with Class type = '002' & '003'
       - column: "KLART_TGT"
         allowed_values:
           - "002"
           - "003"
-          - "019"
-      - column: "STATU_TGT"         # Class status — verify actual allowed values
+      # No migration of current set of Class for MY
+      - column: "SOURCE"
+        allowed_values:
+          - "ECC"
+
+      - column: "STATU_TGT"
         allowed_values:
           - "1"
-          - "2"
-          - "3"
-      - column: "PRAUS_TGT"         # Release authorization — verify actual allowed values
+      
+      - column: "BISDT_TGT"
         allowed_values:
-          - "0"
-          - "1"
+          - "99991231"
 
-    PROHIBITED_NEWLINE_FIELDS:
-      - "CLASS_TGT"
 
+    PROHIBITED_NEWLINE_FIELDS:     []
     NON_BLANK_OPTIONAL_FIELDS:     []
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     START_WITH_FIELDS:             []
     SAME_SHEET_REFERENCES:         []
     CROSS_SHEET_REFERENCES:        []
-    KDS_REFERENCES:                []
+
+    KDS_REFERENCES:
+      # Class Type
+      - kds_sheet: "THMM_TCLA"
+        kds_columns:
+          - "KLART_TGT"
+        source_columns:
+          - "KLART_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "KLART_SRC"
+          template_src_columns:      
+            - "KLART_SRC"
+
     KDS_PROHIBITED_REFERENCES:     []
 
+    START_WITH_FIELDS:
+      # THMM - Class for THMM migrate only class that start with "ZFL-" and "ZEQ-"
+      - column: "CLASS_TGT"
+        prefix:
+          - "ZFL-"
+          - "ZEQ-"
+        condition:
+          column: "SOURCE"
+          values:
+            - "ECC"
+
     CUSTOM_VALIDATIONS:
+      # Check valid date format
       - check_ad_date:
           - VONDT_TGT
-          - BISDT_TGT
+
+
+
+
+
+
+
+
 
   - NAME:          "2. Classification System (Keywords)"
     SHEET_KEYWORD: "TH_SWOR_Classification System"
@@ -78,19 +112,38 @@ JOBS:
       - ["CLINT_TGT", "SPRAS_TGT", "KSCHL_TGT"]
 
     FIXED_VALUE_FIELDS:
-      - column: "SPRAS_TGT"         # Language key — verify actual allowed values
+      - column: "SPRAS_TGT"         
         allowed_values:
-          - "T"                     # Thai
-          - "E"                     # English
+          # - "T"   # Thai
+          - "E"     # English
+          
+      # THMM - Migrate Class with Class type = '002' & '003'
+      - column: "CLASS_TYPE"
+        allowed_values:
+          - "002"
+          - "003"
+
+      # No migration of current set of Class for MY
+      - column: "SOURCE"
+        allowed_values:
+          - "ECC"
 
     PROHIBITED_NEWLINE_FIELDS:
+      # Check no /n in text column
       - "KSCHL_TGT"
+      - "KSCHG_TGT"
 
     NON_BLANK_OPTIONAL_FIELDS:     []
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     START_WITH_FIELDS:             []
     SAME_SHEET_REFERENCES:         []
-    CROSS_SHEET_REFERENCES:        []
+
+    CROSS_SHEET_REFERENCES:
+      # Check Parent-Chile to Class Header Sheet (Internal Running Number + Characteristic Name)
+      - source_columns:       ["CLINT_TGT", "CLASS_TYPE", "CLASS_NAME"]
+        target_sheet_keyword: "TH_KLAH_Class Header Data"
+        target_columns:       ["CLINT_TGT", "KLART_TGT", "CLASS_TGT"]
+
     KDS_REFERENCES:                []
     KDS_PROHIBITED_REFERENCES:     []
     CUSTOM_VALIDATIONS:            []

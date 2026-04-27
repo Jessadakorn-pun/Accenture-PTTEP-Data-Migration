@@ -1,5 +1,10 @@
-- mapping unit ต้อง update ใหม่ เพราะเก่าผิด / blank ทำให้โหลด error 
+- mapping unit ต้อง update ใหม่ เพราะเก่าผิด / blank ทำให้โหลด error (Messuring Unit)
 - เพิ่ม rule เช็ค
-    - ในชีท PM_CHAR_KSML ต้องไม่มี record MY - เพราะ MY ไม่มัการ migrate class เลยต้องไม่มี character ที่ผูกกับ class
-    - ในชีท PM_CHAR_KSML ต้อง Class TH, MM ต้องเป็นเเค่ ZFL-*, ZEQ-*
-    - Characteristic MY ต้องมีเเค่ 15 ตัวใน List เท่านั้น
+    - ในชีท PM_CHAR_KSML ต้องไม่มี record MY - เพราะ MY ไม่มัการ migrate class เลยต้องไม่มี character ที่ผูกกับ class (DONE)
+    - ในชีท PM_CHAR_KSML ต้อง Class TH, MM ต้องเป็นเเค่ ZFL-*, ZEQ-* (DONE)
+    - Characteristic MY ต้องมีเเค่ 15 ตัวใน List เท่านั้น (DONE)
+    - Class of Char (TH) ถ้าเป็น
+          - "ZEQ-CR"
+          - "ZEQ-SW"
+          - "ZEQ-WI"
+        Characteristic จะต้องเป็น SCE_GROUP เท่านั้น (DONE)

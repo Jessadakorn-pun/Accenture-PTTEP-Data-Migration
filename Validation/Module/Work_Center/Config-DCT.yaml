@@ -75,6 +75,10 @@ JOBS:
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     SAME_SHEET_REFERENCES:         []
     CROSS_SHEET_REFERENCES: 
+      - source_columns:       ["CRHD_WERKS", "CRHD_ARBPL"]
+        target_sheet_keyword: "DCT213"
+        target_columns:       ["CRHD_WERKS", "CRHD_ARBPL"]
+
     KDS_REFERENCES:
       - kds_sheet: "MY_T001W"
         kds_columns:
@@ -129,6 +133,10 @@ JOBS:
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     SAME_SHEET_REFERENCES:         []
     CROSS_SHEET_REFERENCES: 
+      - source_columns:       ["CRHD_WERKS", "CRHD_ARBPL"]
+        target_sheet_keyword: "DCT213"
+        target_columns:       ["CRHD_WERKS", "CRHD_ARBPL"]
+    
     KDS_REFERENCES:
       - kds_sheet: "MY_T001W"
         kds_columns:

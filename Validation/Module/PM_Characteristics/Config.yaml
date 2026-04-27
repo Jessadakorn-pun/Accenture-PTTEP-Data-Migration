@@ -1,12 +1,12 @@
 MODULE: "PM Characteristics"
 
 # ─── File locations (relative to project root) ──────────────────────────────
-TEMPLATE_PATH:        "Module/PM_Characteristics/[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Preload.xlsx"   
+TEMPLATE_PATH:        "Module/PM_Characteristics/[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Preload_v3.0.xlsx"   
 DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
 DATA_STANDARD_SHEET:  "PM Characteristics"                         
-MAPPING_PATH:         "Metadata/Mapping/KDS_PM_Characteristics.xlsx"
+MAPPING_PATH:         "Metadata/Mapping/KDS_ALL_MAPPING.xlsx"
 OUTPUT_PATH:          "Output"
-OUTPUT_FILE_NAME:     "[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Data Cleansing.xlsx"                               
+OUTPUT_FILE_NAME:     "[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Data_Cleansing_v3.0.xlsx"                               
 
 # ─── Ignore configuration ────────────────────────────────────────────────────
 CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
@@ -27,7 +27,7 @@ JOBS:
       - "CABN"
 
     VALIDATIONS:
-      - mandatory
+      - mandatory 
       - length
 
     PRIMARY_KEYS:
@@ -67,7 +67,9 @@ JOBS:
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     SAME_SHEET_REFERENCES:         []
     CROSS_SHEET_REFERENCES:        []
+
     KDS_REFERENCES:
+      # Characteristic Group (Not Mention in DCFS)
       - kds_sheet: "THMMMY_TCMG"
         kds_columns:
           - "ATKLA_TGT"
@@ -78,20 +80,20 @@ JOBS:
             - "ATKLA_SRC"
           template_src_columns:      
             - "ATKLA_SRC"
+
+      # Messurement Unit (Not Mention in DCFS)
       - kds_sheet: "THMMMY_T006"
         kds_columns:
-          # - "SOURCE_TGT"
-          - "MSEHI_TGT"
+          - "UC_MSEHI_TGT"
         source_columns:
-          # - "SOURCE"
-          - "MSEHI_TGT"
+          - "UC_MSEHI_TGT"
         check_mapping:
           kds_src_columns:         
-            # - "SOURCE_SRC"
-            - "MSEHI_SRC"
+            - "UC_MSEHI_SRC"
           template_src_columns:      
-            # - "SOURCE"
-            - "MSEHI_SRC"
+            - "UC_MSEHI_SRC"
+
+      # Status of a characteristic (Not Mention in DCFS)
       - kds_sheet: "THMMMY_TCMS"
         kds_columns:
           - "ATMST_TGT"
@@ -103,8 +105,35 @@ JOBS:
           template_src_columns:      
             - "ATMST_SRC"
 
+      # MY - Check Current Characteristic alie with 
+      # 5. Characteristics attached to MOC_CR, MOC_WI, MOC_SW
+      - kds_sheet: "MY_CharList"
+        kds_columns:
+          - "ATNUM_MY_ALL"
+        source_columns:
+          - "ATNAM_TGT"
+        condition:
+          - column: "SOURCE"
+            values: ["PE1"]
+            
 
+    KDS_COMPLETENESS_REFERENCES:
+
+      # Extract only 15 MY Characteristics for Measuring Point
+      - kds_sheet:      "MY_CharList"
+        kds_field_name: "ANTUM_MUST"
+        source_column:  "ATNAM_TGT"
+        condition:
+          - column: "SOURCE"
+            values: ["PE1"]
+            
     CUSTOM_VALIDATIONS:            []
+
+
+
+
+
+
 
   - NAME:          "2. Characteristic Descriptions"                 
     SHEET_KEYWORD: "TH,MY_CABNT_Char. Descriptions"             
@@ -112,26 +141,58 @@ JOBS:
       - "CABNT"
 
     VALIDATIONS:
-      - mandatory
-      - length
+      - mandatory   
+      - length     
 
     PRIMARY_KEYS: 
       - ["ATINN_TGT", "ATNAM"]                         
 
-    FIXED_VALUE_FIELDS:            []
+    FIXED_VALUE_FIELDS: []
+
     PROHIBITED_NEWLINE_FIELDS:
       - "ATNAM"
       - "ATBEZ_TGT"
+
     NON_BLANK_OPTIONAL_FIELDS:     []
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     SAME_SHEET_REFERENCES:         []
+
     CROSS_SHEET_REFERENCES:
-      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      # Check Parent-Chile to Characteristic Header Sheet (Internal Running Number + Characteristic Name)
       - source_columns:       ["ATINN_TGT", "ATNAM"]
         target_sheet_keyword: "TH,MY_CABN_Characteristic"
         target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
-    KDS_REFERENCES:                []
+
+    KDS_REFERENCES:
+      # MY - Check Current Characteristic alie with 
+      # 5. Characteristics attached to MOC_CR, MOC_WI, MOC_SW
+      - kds_sheet: "MY_CharList"
+        kds_columns:
+          - "ATNUM_MY_ALL"
+        source_columns:
+          - "ATNAM"
+        condition:
+          - column: "SOURCE"
+            values: ["PE1"]
+
+    KDS_COMPLETENESS_REFERENCES:
+      # Extract only 15 MY Characteristics for Measuring Point
+      - kds_sheet:      "MY_CharList"
+        kds_field_name: "ANTUM_MUST"
+        source_column:  "ATNAM"
+        condition:
+          - column: "SOURCE"
+            values: ["PE1"]
+            
     CUSTOM_VALIDATIONS:            []
+
+
+
+
+
+
+
+
 
   - NAME:          "3. Characteristic Value"                 
     SHEET_KEYWORD: "TH,MY_CAWN_Characteristic Value"            
@@ -139,27 +200,40 @@ JOBS:
       - "CAWN"
 
     VALIDATIONS:
-      - mandatory
-      - length
+      - mandatory   
+      - length   
 
     PRIMARY_KEYS: 
       - ["ATINN", "ATNAM", "ATZHL_TGT", "ATWRT_TGT"]                         
 
-    FIXED_VALUE_FIELDS:            []
+    FIXED_VALUE_FIELDS: []
+
     PROHIBITED_NEWLINE_FIELDS:
+      # Check no /n in text column
       - "ATNAM"
       - "ATBEZ"
       - "ATWRT_TGT"
+
     NON_BLANK_OPTIONAL_FIELDS:     []
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     SAME_SHEET_REFERENCES:         []
     CROSS_SHEET_REFERENCES:
-      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+
+      # Check Parent-Chile to Characteristic Header Sheet (Internal Running Number + Characteristic Name)
       - source_columns:       ["ATINN", "ATNAM"]
         target_sheet_keyword: "TH,MY_CABN_Characteristic"
         target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
-    KDS_REFERENCES:                []
+
+    KDS_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
     CUSTOM_VALIDATIONS:            []
+
+
+
+
+
+
+
 
   - NAME:          "4. Characteristic Value Texts"                  
     SHEET_KEYWORD: "TH,MY_CAWNT_Value Texts"             
@@ -167,26 +241,40 @@ JOBS:
       - "CAWNT"
 
     VALIDATIONS:
-      - mandatory
-      - length
+      - mandatory   
+      - length    
 
     PRIMARY_KEYS: 
       - ["ATINN", "ATNAM", "ATZHL_TGT"]                         
 
-    FIXED_VALUE_FIELDS:            []
+    FIXED_VALUE_FIELDS: []
+
     PROHIBITED_NEWLINE_FIELDS:
+      # Check no /n in text column
       - "ATWTB_TGT"
+
     NON_BLANK_OPTIONAL_FIELDS:     []
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     SAME_SHEET_REFERENCES:         []
+    
     CROSS_SHEET_REFERENCES:
-      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      # Check Parent-Chile to Characteristic Header Sheet (Internal Running Number + Characteristic Name)
       - source_columns:       ["ATINN", "ATNAM", "ATZHL_TGT"]
         target_sheet_keyword: "TH,MY_CAWN_Characteristic Value"
         target_columns:       ["ATINN", "ATNAM", "ATZHL_TGT"]
 
-    KDS_REFERENCES:                []
+    KDS_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
     CUSTOM_VALIDATIONS:            []
+
+
+
+
+
+
+
+
+
 
   - NAME:          "5. Characteristic of a Class"                 
     SHEET_KEYWORD: "TH,MY_KSML_Char. of a Class"             
@@ -194,7 +282,7 @@ JOBS:
       - "KSML"
 
     VALIDATIONS:
-      - mandatory
+      - mandatory 
       - length
 
     PRIMARY_KEYS: 
@@ -206,22 +294,65 @@ JOBS:
           - "002"
           - "003"
           - "019"
+
+      # MY - No class from MY (PE1) migrated -> No record that MY class assigned to character
+      - column: "SOURCE"
+        allowed_values:
+          - "ECC"
+
+      # THMM - Extract Characteristics of only SCE_GROUP for Class = ZEQ-CR, ZEQ-SW, ZEQ-WI
+      - column: "CLASS"
+        allowed_values:
+          - "SCE_GROUP"
+        condition:
+          - column: "SOURCE"
+            values: ["ECC"]
+          - column: "ATNAM"
+            values: ["ZEQ-CR", "ZEQ-SW", "ZEQ-WI"]
+
     PROHIBITED_NEWLINE_FIELDS:
+      # Check no /n in text column
       - "ATNAM"
       - "ATBEZ"
       - "CLASS"
+
     NON_BLANK_OPTIONAL_FIELDS:
+      # Character cloumn need value
       - "ATNAM"
+
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     SAME_SHEET_REFERENCES:         []
+
     CROSS_SHEET_REFERENCES:
-      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      # Check Parent-Chile to Characteristic Header Sheet (Internal Running Number + Characteristic Name)
       - source_columns:       ["IMERK_TGT", "ATNAM"]
         target_sheet_keyword: "TH,MY_CABN_Characteristic"
         target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
 
-    KDS_REFERENCES:                []
+    KDS_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+
+    START_WITH_FIELDS:
+      # THMM - Class for THMM migrate only class that start with "ZFL-" and "ZEQ-"
+      - column: "CLASS"
+        prefix:
+          - "ZFL-"
+          - "ZEQ-"
+        condition:
+          column: "SOURCE"
+          values:
+            - "ECC"
+
     CUSTOM_VALIDATIONS:            []
+
+
+
+
+
+
+
+
+
 
   - NAME:          "6. Characteristic of a Class DCT"                  
     SHEET_KEYWORD: "TH,MY_KSML_Char. of a Class DCT"             
@@ -229,11 +360,10 @@ JOBS:
       - "KSML"
 
     VALIDATIONS:
-      - mandatory
-      - length
+      - mandatory  
+      - length  
 
     PRIMARY_KEYS: 
-      # - ["CLINT_TGT", "IMERK_TGT"]  
       - ["CLASS", "KLART_TGT", "ATNAM"]                          
 
     FIXED_VALUE_FIELDS:
@@ -242,21 +372,33 @@ JOBS:
           - "002"
           - "003"
           - "019"
+
+      # DCT219 Data Only
+      - column: "SOURCE"
+        allowed_values:
+          - "DCT-TH"
+
     PROHIBITED_NEWLINE_FIELDS:
+      # Check no /n in text column
       - "ATNAM"
       - "ATBEZ"
       - "CLASS"
+
     NON_BLANK_OPTIONAL_FIELDS:
+      # Character cloumn need value
       - "ATNAM"
+
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
     SAME_SHEET_REFERENCES:         []
+
     CROSS_SHEET_REFERENCES:
-      # หลาย column (composite key) — ทุก column ต้อง match พร้อมกัน
+      # Check Parent-Chile to Characteristic Header Sheet (Internal Running Number + Characteristic Name)
       - source_columns:       ["IMERK_TGT", "ATNAM"]
         target_sheet_keyword: "TH,MY_CABN_Characteristic"
         target_columns:       ["ATINN_TGT", "ATNAM_TGT"]
 
     KDS_REFERENCES:
+      # DCT219 - Check Record wheater in DCT219 or not
       - kds_sheet:  "DCT219"
         kds_columns:
           - "CLASS_TGT"
@@ -266,6 +408,8 @@ JOBS:
           - "CLASS"
           - "ATNAM"
           - "ATBEZ" 
+
+    START_WITH_FIELDS:      []
     CUSTOM_VALIDATIONS:            []
 
 
