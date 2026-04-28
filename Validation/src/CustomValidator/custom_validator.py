@@ -28,11 +28,12 @@ def check_ad_date(value: str):
     """
     Validate a date string in YYYYMMDD format with year 1900–2100.
     '00000000' is treated as blank and passes automatically.
+    '99991231' is treated as SAP open-end date and passes automatically.
 
     Returns None on pass, error string on fail.
     """
     val = value.strip()
-    if not val or val == "00000000":
+    if not val or val in ("00000000", "99991231"):
         return None
     try:
         dt = datetime.strptime(val, "%Y%m%d")
