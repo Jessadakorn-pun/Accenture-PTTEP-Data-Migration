@@ -21,6 +21,25 @@ FAIL = "❌"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Shared condition helper
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _meets_condition(row, condition) -> bool:
+    if not condition:
+        return True
+    conds = condition if isinstance(condition, list) else [condition]
+    for cond in conds:
+        col    = cond.get("column")
+        values = [str(v).strip() for v in cond.get("values", [])]
+        if not col:
+            continue
+        row_val = str(row.get(col, "")).strip()
+        if not row_val or row_val not in values:
+            return False
+    return True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Individual validators
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -177,17 +196,81 @@ def check_startup_date(field_data: dict):
     return None
 
 
+def check_group_consistency(df: pd.DataFrame, rule: dict) -> pd.Series:
+    """
+    DataFrame-level validator: groups rows by `group_by` columns (optionally
+    pre-sorted by `sort_by`) and checks that each column in `check_columns`
+    has a single unique value within every group.
+
+    rule keys:
+        group_by       — list of columns that define a group
+        sort_by        — list of columns to sort by before grouping (optional)
+        check_columns  — list of columns to verify for consistency
+        condition      — None / dict / list-of-dicts; rows not meeting this are skipped
+
+    Returns a pd.Series of result strings aligned to df.index:
+        ✅             — all check_columns consistent within the group
+        ❌ …           — inconsistency details
+        ✅ skipped     — row did not meet condition
+    """
+    group_by      = rule.get("group_by") or []
+    sort_by       = rule.get("sort_by")  or []
+    check_columns = rule.get("check_columns") or []
+    condition     = rule.get("condition")
+
+    results = pd.Series(PASS, index=df.index, dtype=object)
+
+    # Mark rows that don't meet the condition as skipped
+    meets = df.apply(lambda row: _meets_condition(row, condition), axis=1)
+    results[~meets] = f"{PASS} skipped"
+
+    if not group_by or not check_columns:
+        return results
+
+    active_df = df[meets].copy()
+    if active_df.empty:
+        return results
+
+    valid_sort  = [c for c in sort_by  if c in active_df.columns]
+    valid_group = [c for c in group_by if c in active_df.columns]
+
+    if valid_sort:
+        active_df = active_df.sort_values(valid_sort)
+
+    if not valid_group:
+        return results
+
+    for group_keys, group_df in active_df.groupby(valid_group, sort=False):
+        if not isinstance(group_keys, tuple):
+            group_keys = (group_keys,)
+        group_label = ", ".join(f"{k}={v}" for k, v in zip(valid_group, group_keys))
+
+        for col in check_columns:
+            if col not in group_df.columns:
+                continue
+            unique_vals = group_df[col].astype(str).str.strip().unique().tolist()
+            if len(unique_vals) > 1:
+                fail_msg = (
+                    f"{FAIL} {col} inconsistent in group ({group_label}): "
+                    f"found {unique_vals}"
+                )
+                results.loc[group_df.index] = fail_msg
+
+    return results
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Registry — maps config method names → validator functions
 # ─────────────────────────────────────────────────────────────────────────────
 
 CUSTOM_VALIDATORS = {
-    "check_ad_date":     check_ad_date,
-    "check_ad_year":     check_ad_year,
-    "check_mm":          check_mm,
-    "check_between_time": check_between_time,
-    "check_uppercase":   check_uppercase,
-    "check_startup_date": check_startup_date,
+    "check_ad_date":            check_ad_date,
+    "check_ad_year":            check_ad_year,
+    "check_mm":                 check_mm,
+    "check_between_time":       check_between_time,
+    "check_uppercase":          check_uppercase,
+    "check_startup_date":       check_startup_date,
+    "check_group_consistency":  check_group_consistency,
 }
 
 
@@ -238,6 +321,24 @@ def apply_custom_validations(
 
             if rule_items is None:
                 rule_items = []
+
+            # ── DataFrame-level validator (check_group_consistency) ───────
+            if method_name == "check_group_consistency":
+                if not isinstance(rule_items, list):
+                    print(
+                        f"  ⚠️  '{method_name}': rule_items must be a list of rule dicts — skipped."
+                    )
+                    continue
+                for rule in rule_items:
+                    if not isinstance(rule, dict):
+                        continue
+                    group_by      = rule.get("group_by") or []
+                    check_columns = rule.get("check_columns") or []
+                    col_label     = " + ".join(group_by)      if group_by      else "group"
+                    check_label   = " + ".join(check_columns) if check_columns else "columns"
+                    result_col    = f"Check {check_label} consistency by ({col_label}) ({method_name})"
+                    df[result_col] = validate_fn(df, rule)
+                continue
 
             # ── Multi-column validator ────────────────────────────────────
             # rule_items is a list of dicts: [{param_key: column_name, ...}]
