@@ -133,12 +133,14 @@ def validate_mandatory_and_length(
 
     Returns a new DataFrame with two added columns.
     """
-    mandatory_results = []
-    length_results    = []
+    mandatory_results   = []
+    length_results      = []
+    system_gen_results  = []
 
     for _, row in df.iterrows():
-        mandatory_errors = []
-        length_errors    = []
+        mandatory_errors  = []
+        length_errors     = []
+        system_gen_errors = []
 
         for col in data_columns:
             if col not in df.columns:
@@ -153,6 +155,10 @@ def validate_mandatory_and_length(
             if meta.get("mandatory") and not has_value(val):
                 mandatory_errors.append(f"{FAIL} {col}: Missing mandatory value")
 
+            # ── System Generated — must be blank ───────────────────
+            if meta.get("system_generated") and has_value(val):
+                system_gen_errors.append(f"{FAIL} {col}: System-generated field must be blank")
+
             # ── Length / format ────────────────────────────────────
             if has_value(val):
                 if field_type == "DATS":
@@ -166,10 +172,12 @@ def validate_mandatory_and_length(
 
         mandatory_results.append(_format_errors(mandatory_errors))
         length_results.append(_format_errors(length_errors))
+        system_gen_results.append(_format_errors(system_gen_errors))
 
     df = df.copy()
-    df["Check Mandatory Validation Result"] = mandatory_results
-    df["Check Length Validation Result"]    = length_results
+    df["Check Mandatory Validation Result"]        = mandatory_results
+    df["Check Length Validation Result"]           = length_results
+    df["Check System Generated Validation Result"] = system_gen_results
     return df
 
 

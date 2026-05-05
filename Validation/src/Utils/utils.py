@@ -277,7 +277,8 @@ def get_field_metadata(
 
     # Mandatory: starts with "M-Mandatory" or just "M"
     req_str = str(row.get(req_col, "") if req_col else "").strip().upper()
-    is_mandatory = req_str.startswith("M-MANDATORY") or req_str == "M"
+    is_mandatory     = req_str.startswith("M-MANDATORY") or req_str == "M"
+    is_system_gen    = req_str.startswith("S-SYSTEM")    or req_str == "S"
 
     # Length
     length = None
@@ -288,7 +289,7 @@ def get_field_metadata(
             pass
 
     # NOTE: No 'Data Type' column in DataStandardList.xlsx — always None
-    return {"mandatory": is_mandatory, "length": length, "type": None}
+    return {"mandatory": is_mandatory, "length": length, "type": None, "system_generated": is_system_gen}
 
 
 def build_field_metadata(
