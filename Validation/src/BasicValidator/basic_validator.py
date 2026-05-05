@@ -310,23 +310,35 @@ def validate_non_blank_optional(
     """
     Check that every field in non_blank_fields is filled.
 
-    Config key: NON_BLANK_OPTIONAL_FIELDS (list of column names)
+    Config key: NON_BLANK_OPTIONAL_FIELDS
 
-    Example config:
-        NON_BLANK_OPTIONAL_FIELDS:
-          - "KOSTL_TGT"
-          - "IWERK_TGT"
+    Supports two item formats (can be mixed):
+        - "KOSTL_TGT"                         # plain string — always checked
+        - column: "KOSTL_TGT"                 # dict with optional condition
+          condition:
+            column: "SOURCE"
+            values: ["ECC"]
 
-    Behaviour: each column is checked independently — ALL must have a value.
+    Rows not meeting a condition are skipped (treated as pass) for that field.
     """
     df      = df.copy()
     results = []
 
     for _, row in df.iterrows():
         errors = []
-        for col in non_blank_fields:
-            if col not in df.columns:
+        for item in non_blank_fields:
+            if isinstance(item, dict):
+                col       = item.get("column")
+                condition = item.get("condition")
+            else:
+                col       = item
+                condition = None
+
+            if not col or col not in df.columns:
                 continue
+            if not _meets_condition(row, condition):
+                continue
+
             val = str(row.get(col, "")).strip()
             if not val:
                 errors.append(f"{FAIL} {col}: missing value")
@@ -344,24 +356,36 @@ def validate_non_blank_optional_any(
     """
     Check that at least one field in each group is filled.
 
-    Config key: NON_BLANK_OPTIONAL_ANY_FIELDS (list of groups, each group is a list)
+    Config key: NON_BLANK_OPTIONAL_ANY_FIELDS
 
-    Example config:
-        NON_BLANK_OPTIONAL_ANY_FIELDS:
-          - ["KOSTL_TGT", "IWERK_TGT"]    # at least one of these must be filled
-          - ["ADDAT_TGT", "DATAN_TGT"]    # at least one of these must be filled
+    Supports two item formats (can be mixed):
+        - ["KOSTL_TGT", "IWERK_TGT"]          # plain list — always checked
+        - columns: ["KOSTL_TGT", "IWERK_TGT"] # dict with optional condition
+          condition:
+            column: "SOURCE"
+            values: ["ECC"]
 
-    Behaviour: within each group, if ALL columns are blank → fail.
+    Rows not meeting a condition are skipped (treated as pass) for that group.
     """
     df      = df.copy()
     results = []
 
     for _, row in df.iterrows():
         errors = []
-        for group in non_blank_any_groups:
+        for item in non_blank_any_groups:
+            if isinstance(item, dict):
+                group     = item.get("columns", [])
+                condition = item.get("condition")
+            else:
+                group     = item
+                condition = None
+
             valid_cols = [c for c in group if c in df.columns]
             if not valid_cols:
                 continue
+            if not _meets_condition(row, condition):
+                continue
+
             values = [str(row.get(c, "")).strip() for c in valid_cols]
             if all(v == "" for v in values):
                 joined = " and ".join(valid_cols)
