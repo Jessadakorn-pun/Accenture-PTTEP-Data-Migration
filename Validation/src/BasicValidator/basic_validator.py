@@ -133,51 +133,52 @@ def validate_mandatory_and_length(
 
     Returns a new DataFrame with two added columns.
     """
-    mandatory_results   = []
-    length_results      = []
-    system_gen_results  = []
+    df = df.copy()
+    mandatory_errors  = defaultdict(list)
+    length_errors     = defaultdict(list)
+    system_gen_errors = defaultdict(list)
 
-    for _, row in df.iterrows():
-        mandatory_errors  = []
-        length_errors     = []
-        system_gen_errors = []
+    for col in data_columns:
+        if col not in df.columns:
+            continue
+        meta = field_metadata.get(col, {})
 
-        for col in data_columns:
-            if col not in df.columns:
-                continue
-            val   = str(row.get(col, "")).strip()
-            meta  = field_metadata.get(col, {})
+        # Vectorized strip + has_value equivalent
+        vals     = df[col].astype(str).str.strip()
+        has_val  = (vals != "") & ~vals.str.upper().isin({"NAN", "NONE", "NAT"})
+        vals_arr = vals.values
+        has_arr  = has_val.values
 
-            field_type   = meta.get("type")
-            field_length = meta.get("length")
+        # ── Mandatory ──────────────────────────────────────────────
+        if meta.get("mandatory"):
+            for idx in df.index[~has_val]:
+                mandatory_errors[idx].append(f"{FAIL} {col}: Missing mandatory value")
 
-            # ── Mandatory ──────────────────────────────────────────
-            if meta.get("mandatory") and not has_value(val):
-                mandatory_errors.append(f"{FAIL} {col}: Missing mandatory value")
+        # ── System Generated — must be blank ───────────────────────
+        if meta.get("system_generated"):
+            for idx in df.index[has_val]:
+                system_gen_errors[idx].append(f"{FAIL} {col}: System-generated field must be blank")
 
-            # ── System Generated — must be blank ───────────────────
-            if meta.get("system_generated") and has_value(val):
-                system_gen_errors.append(f"{FAIL} {col}: System-generated field must be blank")
-
-            # ── Length / format ────────────────────────────────────
-            if has_value(val):
+        # ── Length / format (only rows with values) ─────────────────
+        field_type   = meta.get("type")
+        field_length = meta.get("length")
+        if field_type or field_length:
+            for pos, idx in enumerate(df.index):
+                if not has_arr[pos]:
+                    continue
+                val = vals_arr[pos]
                 if field_type == "DATS":
-                    length_errors.extend(_validate_dats(val, field_length, col))
+                    length_errors[idx].extend(_validate_dats(val, field_length, col))
                 elif field_type == "TIMS":
-                    length_errors.extend(_validate_tims(val, field_length, col))
+                    length_errors[idx].extend(_validate_tims(val, field_length, col))
                 elif field_length and len(val) > field_length:
-                    length_errors.append(
+                    length_errors[idx].append(
                         f"{FAIL} {col}: length {len(val)} exceeds max {field_length} (value='{val}')"
                     )
 
-        mandatory_results.append(_format_errors(mandatory_errors))
-        length_results.append(_format_errors(length_errors))
-        system_gen_results.append(_format_errors(system_gen_errors))
-
-    df = df.copy()
-    df["Check Mandatory Validation Result"]        = mandatory_results
-    df["Check Length Validation Result"]           = length_results
-    df["Check System Generated Validation Result"] = system_gen_results
+    df["Check Mandatory Validation Result"]        = [_format_errors(mandatory_errors[i])  for i in df.index]
+    df["Check Length Validation Result"]           = [_format_errors(length_errors[i])      for i in df.index]
+    df["Check System Generated Validation Result"] = [_format_errors(system_gen_errors[i])  for i in df.index]
     return df
 
 
@@ -204,23 +205,15 @@ def validate_primary_keys(
             print(f"  ⚠️  PK set {key_set} — no matching columns found, skipped.")
             continue
 
-        key_counts   = defaultdict(int)
-        keys_per_row = []
+        stripped   = df[valid_cols].astype(str).apply(lambda c: c.str.strip())
+        key_series = stripped.agg(" | ".join, axis=1)
+        count_map  = key_series.value_counts()
+        all_blank  = (stripped == "").all(axis=1)
+        dup_mask   = (key_series.map(count_map) > 1) & ~all_blank
 
-        for _, row in df.iterrows():
-            key = " | ".join(str(row.get(c, "")).strip() for c in valid_cols)
-            keys_per_row.append(key)
-            key_counts[key] += 1
-
-        results = []
-        for key in keys_per_row:
-            parts = key.split(" | ")
-            if all(not p for p in parts):
-                results.append(f"{FAIL} Missing PK value(s)")
-            elif key_counts[key] > 1:
-                results.append(f"{FAIL} Duplicate PK: {key}")
-            else:
-                results.append(PASS)
+        results = pd.Series(PASS, index=df.index, dtype=object)
+        results[all_blank] = f"{FAIL} Missing PK value(s)"
+        results[dup_mask]  = key_series[dup_mask].apply(lambda k: f"{FAIL} Duplicate PK: {k}")
 
         col_name = f"Check PK Validation Result ({' + '.join(valid_cols)})"
         df[col_name] = results
@@ -253,18 +246,20 @@ def validate_fixed_values(
         if not col or col not in df.columns:
             continue
 
-        result_col = f"Check value fix field on {col}"
-        results    = []
+        result_col  = f"Check value fix field on {col}"
+        vals        = df[col].astype(str).str.strip()
+        blank_mask  = vals == ""
+        in_allowed  = vals.isin(set(allowed))
 
-        for _, row in df.iterrows():
-            if not _meets_condition(row, condition):
-                results.append(PASS)
-                continue
-            val = str(row.get(col, "")).strip()
-            if not val or val in allowed:
-                results.append(PASS)
-            else:
-                results.append(f"{FAIL} {col}: value '{val}' not in allowed list {allowed}")
+        if condition:
+            meets = df.apply(lambda r: _meets_condition(r, condition), axis=1)
+        else:
+            meets = pd.Series(True, index=df.index)
+
+        fail_mask = meets & ~blank_mask & ~in_allowed
+        results   = pd.Series(PASS, index=df.index, dtype=object)
+        for i in df.index[fail_mask]:
+            results.at[i] = f"{FAIL} {col}: value '{vals.at[i]}' not in allowed list {allowed}"
 
         df[result_col] = results
 
@@ -281,20 +276,20 @@ def validate_prohibited_newlines(
     label_map: dict,
 ) -> pd.DataFrame:
     """Add 'Check Newline Prohibited Field Result'."""
-    df      = df.copy()
-    results = []
+    df = df.copy()
+    errors_by_idx = defaultdict(list)
 
-    for _, row in df.iterrows():
-        errors = []
-        for col in newline_fields:
-            if col not in df.columns:
-                continue
-            val = str(row.get(col, ""))
-            if re.search(r"[\r\n]", val):
-                errors.append(f"{FAIL} {col}: Newline character not allowed")
-        results.append(_format_errors(errors))
+    for col in newline_fields:
+        if col not in df.columns:
+            continue
+        mask = df[col].astype(str).str.contains(r"[\r\n]", regex=True, na=False)
+        for idx in df.index[mask]:
+            errors_by_idx[idx].append(f"{FAIL} {col}: Newline character not allowed")
 
-    df["Check Newline Prohibited Field Result"] = results
+    df["Check Newline Prohibited Field Result"] = [
+        _join_errors(errors_by_idx[i]) if errors_by_idx[i] else PASS
+        for i in df.index
+    ]
     return df
 
 
@@ -467,17 +462,17 @@ def validate_cross_sheet_reference(
         )
 
     target_keys = set(
-        tuple(str(v).strip() for v in row)
-        for _, row in target_df[target_columns].iterrows()
+        map(tuple, target_df[target_columns].astype(str).apply(lambda c: c.str.strip()).values)
     )
 
-    results = []
-    for _, row in source_df.iterrows():
-        key = tuple(str(row.get(c, "")).strip() for c in source_columns)
-        if all(v == "" for v in key) or key in target_keys:
-            results.append(PASS)
-        else:
-            results.append(f"{FAIL} {key} not found in sheet '{target_sheet_name}'")
+    src_keys = list(
+        map(tuple, source_df[source_columns].astype(str).apply(lambda c: c.str.strip()).values)
+    )
+    results = [
+        PASS if all(v == "" for v in key) or key in target_keys
+        else f"{FAIL} {key} not found in sheet '{target_sheet_name}'"
+        for key in src_keys
+    ]
 
     col_name   = f"Check Cross-Sheet: {' + '.join(source_columns)} in {target_sheet_name}"
     return col_name, results
@@ -544,28 +539,34 @@ def validate_kds_reference(
             )
         col_map[src_col] = kds_col
 
+    # ── Pre-build KDS lookup set (once) ──────────────────────────────────────
+    kds_cols_ordered = [col_map[s] for s in source_columns]
+    kds_set = set(
+        map(tuple, kds_df[kds_cols_ordered].astype(str).apply(lambda c: c.str.strip()).values)
+    )
+
+    # ── Pre-strip template columns + condition mask ───────────────────────────
+    tmpl_arr = {c: df[c].astype(str).str.strip().values for c in source_columns}
+    meets    = (
+        df.apply(lambda r: _meets_condition(r, condition), axis=1).values
+        if condition else None
+    )
+
     results = []
-    for _, row in df.iterrows():
-        if not _meets_condition(row, condition):
+    for i in range(len(df)):
+        if meets is not None and not meets[i]:
             results.append(PASS)
             continue
 
-        all_blank = all(str(row.get(c, "")).strip() == "" for c in source_columns)
-        if all_blank:
+        vals = tuple(tmpl_arr[c][i] for c in source_columns)
+        if all(v == "" for v in vals):
             results.append(PASS)
             continue
 
-        kds_cond = pd.Series([True] * len(kds_df))
-        for src_col, kds_col in col_map.items():
-            kds_cond &= kds_df[kds_col].str.strip() == str(row.get(src_col, "")).strip()
-
-        if kds_cond.any():
+        if vals in kds_set:
             results.append(PASS)
         else:
-            desc_parts = [
-                f"{src_col}: '{str(row.get(src_col, '')).strip()}'"
-                for src_col in source_columns
-            ]
+            desc_parts = [f"{c}: '{v}'" for c, v in zip(source_columns, vals)]
             results.append(f"{FAIL} {', '.join(desc_parts)} not found in KDS '{kds_name}'")
 
     col_name = f"Check KDS Mapping: {' + '.join(source_columns)} in '{kds_name}'"
@@ -616,14 +617,42 @@ def validate_kds_mapping(
                 f"Available: {list(kds_df.columns)}"
             )
 
+    # ── Pre-process KDS (once) ───────────────────────────────────────────────
+    all_kds_cols = kds_src_columns + kds_tgt_columns
+    kds_s = kds_df[all_kds_cols].astype(str).apply(lambda c: c.str.strip())
+
+    # src→tgt lookup dict (first match per src key)
+    kds_lookup: dict = {}
+    for src_key, tgt_val in zip(
+        map(tuple, kds_s[kds_src_columns].values),
+        map(tuple, kds_s[kds_tgt_columns].values),
+    ):
+        if src_key not in kds_lookup:
+            kds_lookup[src_key] = tgt_val
+
+    # Blank-ASIS structures for Case 2
+    blank_asis_mask  = (kds_s[kds_src_columns] == "").all(axis=1)
+    blank_asis_df    = kds_s[blank_asis_mask]
+    blank_asis_empty = blank_asis_df.empty
+    blank_tgt_set    = set(map(tuple, blank_asis_df[kds_tgt_columns].values)) if not blank_asis_empty else set()
+    blank_asis_allow = {c: blank_asis_df[c].tolist() for c in kds_tgt_columns} if not blank_asis_empty else {}
+
+    # ── Pre-strip template columns + condition mask ───────────────────────────
+    src_arr = {c: df[c].astype(str).str.strip().values for c in template_src_columns}
+    tgt_arr = {c: df[c].astype(str).str.strip().values for c in template_tgt_columns}
+    meets   = (
+        df.apply(lambda r: _meets_condition(r, condition), axis=1).values
+        if condition else None
+    )
+
     results = []
-    for _, row in df.iterrows():
-        if not _meets_condition(row, condition):
+    for i in range(len(df)):
+        if meets is not None and not meets[i]:
             results.append(PASS)
             continue
 
-        src_vals = [str(row.get(c, "")).strip() for c in template_src_columns]
-        tgt_vals = [str(row.get(c, "")).strip() for c in template_tgt_columns]
+        src_vals = [src_arr[c][i] for c in template_src_columns]
+        tgt_vals = [tgt_arr[c][i] for c in template_tgt_columns]
 
         src_all_blank = all(v == "" for v in src_vals)
         tgt_all_blank = all(v == "" for v in tgt_vals)
@@ -634,65 +663,43 @@ def validate_kds_mapping(
             continue
 
         # Case 2: SRC all blank but TGT has value
-        #   → try to match against KDS rows where ASIS columns are also blank
         if src_all_blank:
-            blank_src_cond = pd.Series([True] * len(kds_df))
-            for kds_col in kds_src_columns:
-                blank_src_cond &= kds_df[kds_col].str.strip() == ""
-
-            blank_asis_rows = kds_df[blank_src_cond]
-
-            if blank_asis_rows.empty:
-                # 2c: KDS has no blank-ASIS rows → cannot verify
+            if blank_asis_empty:
+                # 2c: no blank-ASIS rows in KDS → cannot verify
                 results.append(f"{WARN} SRC blank — please verify mapping in KDS '{kds_name}'")
             else:
-                # Check if any blank-ASIS row has TGT matching template TGT (tuple match)
-                full_cond = blank_src_cond.copy()
-                for kds_col, tgt_val in zip(kds_tgt_columns, tgt_vals):
-                    full_cond &= kds_df[kds_col].str.strip() == tgt_val
-
-                if full_cond.any():
+                tgt_key = tuple(tgt_vals)
+                if tgt_key in blank_tgt_set:
                     # 2a: found matching blank-ASIS row → PASS
                     results.append(PASS)
                 else:
-                    # 2b: blank-ASIS rows exist but TGT doesn't match any → FAIL
+                    # 2b: blank-ASIS rows exist but TGT doesn't match
                     errors = []
                     for kds_col, tgt_col, tgt_val in zip(kds_tgt_columns, template_tgt_columns, tgt_vals):
-                        allowed = blank_asis_rows[kds_col].str.strip().tolist()
+                        allowed = blank_asis_allow[kds_col]
                         if tgt_val not in allowed:
-                            errors.append(
-                                f"{tgt_col}: expected one of {allowed} got '{tgt_val}'"
-                            )
+                            errors.append(f"{tgt_col}: expected one of {allowed} got '{tgt_val}'")
                     results.append(f"{FAIL} Wrong mapping: {', '.join(errors)}" if errors else PASS)
             continue
 
         # Case 3: SRC partially blank → fail
         if any(v == "" for v in src_vals):
-            missing = [template_src_columns[i] for i, v in enumerate(src_vals) if v == ""]
+            missing = [template_src_columns[j] for j, v in enumerate(src_vals) if v == ""]
             results.append(f"{FAIL} SRC incomplete — {', '.join(missing)} missing")
             continue
 
-        # Case 4: find KDS row matching SRC combination
-        kds_cond = pd.Series([True] * len(kds_df))
-        for kds_col, src_val in zip(kds_src_columns, src_vals):
-            kds_cond &= kds_df[kds_col].str.strip() == src_val
-
-        matched_rows = kds_df[kds_cond]
-        if matched_rows.empty:
-            src_display = ", ".join(
-                f"({c})='{v}'" for c, v in zip(template_src_columns, src_vals)
-            )
+        # Case 4 & 5 & 6: dict lookup
+        src_key = tuple(src_vals)
+        if src_key not in kds_lookup:
+            src_display = ", ".join(f"({c})='{v}'" for c, v in zip(template_src_columns, src_vals))
             results.append(f"{FAIL} AS-IS ({src_display}) not found in KDS '{kds_name}'")
             continue
 
-        # Case 5 & 6: compare TGT against KDS row
-        kds_row = matched_rows.iloc[0]
-        errors  = []
-        for kds_col, tgt_col, tgt_val in zip(kds_tgt_columns, template_tgt_columns, tgt_vals):
-            expected = str(kds_row[kds_col]).strip()
-            if tgt_val != expected:
-                errors.append(f"{tgt_col}: expected '{expected}' got '{tgt_val}'")
-
+        expected_tgt = kds_lookup[src_key]
+        errors = []
+        for tgt_col, tgt_val, exp_val in zip(template_tgt_columns, tgt_vals, expected_tgt):
+            if tgt_val != exp_val:
+                errors.append(f"{tgt_col}: expected '{exp_val}' got '{tgt_val}'")
         results.append(f"{FAIL} Wrong mapping: {', '.join(errors)}" if errors else PASS)
 
     col_name = (
@@ -752,25 +759,24 @@ def validate_kds_prohibited(
             )
         col_map[src_col] = kds_col
 
+    # ── Pre-build KDS prohibited set (once) ──────────────────────────────────
+    kds_cols_ordered = [col_map[s] for s in source_columns]
+    kds_set = set(
+        map(tuple, kds_df[kds_cols_ordered].astype(str).apply(lambda c: c.str.strip()).values)
+    )
+
+    tmpl_arr = {c: df[c].astype(str).str.strip().values for c in source_columns}
+
     results = []
-    for _, row in df.iterrows():
-        all_blank = all(str(row.get(c, "")).strip() == "" for c in source_columns)
-        if all_blank:
+    for i in range(len(df)):
+        vals = tuple(tmpl_arr[c][i] for c in source_columns)
+        if all(v == "" for v in vals):
             results.append(PASS)
             continue
 
-        condition = pd.Series([True] * len(kds_df))
-        for src_col, kds_col in col_map.items():
-            condition &= kds_df[kds_col].str.strip() == str(row.get(src_col, "")).strip()
-
-        if condition.any():
-            desc_parts = [
-                f"{src_col}: '{str(row.get(src_col, '')).strip()}'"
-                for src_col in source_columns
-            ]
-            results.append(
-                f"{FAIL} {', '.join(desc_parts)} is prohibited (found in KDS '{kds_name}')"
-            )
+        if vals in kds_set:
+            desc_parts = [f"{c}: '{v}'" for c, v in zip(source_columns, vals)]
+            results.append(f"{FAIL} {', '.join(desc_parts)} is prohibited (found in KDS '{kds_name}')")
         else:
             results.append(PASS)
 
