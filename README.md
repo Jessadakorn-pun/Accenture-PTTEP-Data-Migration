@@ -743,7 +743,7 @@ After all checks, a `Check Overall Validation Result` column is inserted as the 
 ## Config Reference (`Config.yaml`)
 
 ```yaml
-MODULE: "Work Order"                        # Display name
+MODULE: "Work Order"                        # Display name shown in logs and output
 
 # ── File paths (relative to Validation/) ─────────────────────────────────────
 TEMPLATE_PATH:       "Module/Work_Order/Template_Work_Order.xlsx"
@@ -756,7 +756,7 @@ OUTPUT_FILE_NAME:    "validated_work_order.xlsx"
 # ── Ignore configuration ──────────────────────────────────────────────────────
 CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"  # Sheet inside template listing fields to skip
 IGNORE_COLUMN_SUFFIXES:
-  - "_SRC"
+  - "_SRC"            # columns ending with these suffixes are skipped entirely
   - "_DESC"
   - "SOURCE"
   - "REMARK"
@@ -764,50 +764,78 @@ IGNORE_COLUMN_SUFFIXES:
 # ── Jobs (one per worksheet) ──────────────────────────────────────────────────
 JOBS:
   - NAME:          "Maintenance Order Header"
-    SHEET_KEYWORD: "Maintenance Order Header"  # exact match against sheet names
+    SHEET_KEYWORD: "Maintenance Order Header"  # substring match against Excel sheet tab names
     DS_TABLE:      "AFIH"                      # SAP table filter in Data Standard
                                                # Use a list for multi-table:
                                                #   DS_TABLE:
                                                #     - "AFIH"
                                                #     - "AUFK"
 
+    # ── Core validations ────────────────────────────────────────────────────────
     VALIDATIONS:
-      - mandatory
-      - length
+      - mandatory   # Fields marked M-MANDATORY in Data Standard must not be blank
+      - length      # Value must not exceed the max length defined in Data Standard
+                    # Note: Fields marked S-SYSTEM in Data Standard are validated
+                    # automatically — they must be blank (system-generated). No extra config needed.
 
+    # ── Primary key uniqueness ───────────────────────────────────────────────────
     PRIMARY_KEYS:
       - ["AUFNR_TGT"]                          # single-column PK
-      - ["AUFNR_TGT", "VORNR_TGT"]            # composite PK (separate check column)
+      - ["AUFNR_TGT", "VORNR_TGT"]            # composite PK (one check column per entry)
 
+    # ── Fixed / allowed values ───────────────────────────────────────────────────
     FIXED_VALUE_FIELDS:
       - column: "IWERK_TGT"
         allowed_values: ["4410", "4411"]
+        # condition:                           # optional — only check rows matching this filter
+        #   column: "AUART_TGT"
+        #   values: ["PM01", "PM02"]
 
+    # ── Prohibited newline characters ────────────────────────────────────────────
     PROHIBITED_NEWLINE_FIELDS:
       - "KTEXT_TGT"
 
+    # ── Non-blank optional fields — ALL listed columns must be filled ────────────
+    # Format 1 — plain string: checked for every row
+    # Format 2 — dict with condition: checked only when the row matches the condition
     NON_BLANK_OPTIONAL_FIELDS:
-      - "ILOAN_TGT"
+      - "ILOAN_TGT"                            # always required when present
 
+      - column: "TPLNR_TGT"                   # required only for rows where AUART_TGT is PM01 or PM03
+        condition:
+          column: "AUART_TGT"
+          values: ["PM01", "PM03"]
+
+    # ── Non-blank optional fields — at least ONE column must be filled ───────────
+    # Format 1 — plain list: checked for every row
+    # Format 2 — dict with columns + condition: checked only when condition matches
     NON_BLANK_OPTIONAL_ANY_FIELDS:
-      - ["ANLBD_TGT", "ANLVD_TGT", "ANLBZ_TGT"]   # at least one must be filled
+      - ["ANLBD_TGT", "ANLVD_TGT", "ANLBZ_TGT"]   # at least one must be non-blank (all rows)
 
+      - columns: ["ANLBD_TGT", "ANLVD_TGT"]        # at least one required, but only for PM02 rows
+        condition:
+          column: "AUART_TGT"
+          values: ["PM02"]
+
+    # ── Same-sheet value reference ───────────────────────────────────────────────
     SAME_SHEET_REFERENCES:
-      - source_column: "AUFNRC_TGT"           # child column
-        target_column: "AUFNR_TGT"            # parent column (value must exist here)
+      - source_column: "AUFNRC_TGT"           # child column — its value must exist in target_column
+        target_column: "AUFNR_TGT"            # parent column
 
+    # ── Cross-sheet value reference ──────────────────────────────────────────────
     CROSS_SHEET_REFERENCES:
       - source_columns:       ["AUFNR_TGT"]
-        target_sheet_keyword: "Order Master Data"
+        target_sheet_keyword: "Order Master Data"   # substring match against other sheet tab names
         target_columns:       ["AUFNR_TGT"]
 
+    # ── KDS (Key Data Store) reference — value must exist in KDS ────────────────
     KDS_REFERENCES:
-      # Single column
+      # Single-column lookup (use kds_field_name to name the KDS column)
       - kds_sheet:      "DT03"
-        kds_field_name: "ARTPR_TOBE"
-        source_columns: ["ARTPR_TGT"]
+        kds_field_name: "ARTPR_TOBE"           # column name in the KDS sheet
+        source_columns: ["ARTPR_TGT"]          # template column whose value must be found in KDS
 
-      # Composite key
+      # Composite-key lookup (use kds_columns for multi-column keys)
       - kds_sheet: "DT_PLANT_TYPE"
         kds_columns:
           - "PLANT_TOBE"
@@ -816,43 +844,89 @@ JOBS:
           - "IWERK_TGT"
           - "ARTPR_TGT"
 
-        # Optional: verify AS-IS → TO-BE mapping is correct
+        # Optional: also verify that the AS-IS value maps to the correct TO-BE value
         check_mapping:
-          kds_src_columns:        ["PLANT_SRC", "TYPE_SRC"]
-          template_src_columns:   ["IWERK_SRC", "ARTPR_SRC"]
+          kds_src_columns:      ["PLANT_SRC", "TYPE_SRC"]    # source (AS-IS) columns in KDS
+          template_src_columns: ["IWERK_SRC",  "ARTPR_SRC"]  # matching columns in template
 
+        # Optional: skip rows that do not match this condition
+        # condition:
+        #   column: "IWERK_TGT"
+        #   values: ["2300", "2304"]
+
+    # ── KDS prohibited — value must NOT exist in KDS (blacklist) ────────────────
     KDS_PROHIBITED_REFERENCES:
-      # Fails if value IS found in the KDS table (blacklist)
-      - kds_sheet: "BLACKLIST_CODES"
+      - kds_sheet:    "BLACKLIST_CODES"
+        kds_columns:  ["ARTPR_TOBE"]           # or: kds_field_name: "ARTPR_TOBE" for single column
         source_columns: ["ARTPR_TGT"]
-        # kds_field_name: "ARTPR_TOBE"   # optional; defaults to same column header
 
+    # ── KDS completeness — every value in KDS must appear in the template ────────
+    # Reports only the values that are present in KDS but missing from the template.
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "MASTER_LIST"
+        kds_field_name: "EXPECTED_VALUE_COL"   # column in KDS listing all expected values
+        source_column:  "AUFNR_TGT"            # template column to check coverage against
+
+    # ── Start-with prefix check ──────────────────────────────────────────────────
+    START_WITH_FIELDS:
+      - column: "KOSTL_TGT"
+        prefix:
+          - "P"
+          - "C"                                # any prefix in the list is accepted
+        condition:                             # optional — only check matching rows
+          column: "WERKS_TGT"
+          values: ["1001"]
+
+    # ── Custom validators ────────────────────────────────────────────────────────
     CUSTOM_VALIDATIONS:
-      # Single-column validators
-      - check_ad_date:
+
+      # ── Single-column validators ─────────────────────────────────────────────
+      - check_ad_date:                         # YYYYMMDD format; 00000000 and 99991231 pass
           - ADDAT_TGT
           - DATAN_TGT
 
-      - check_ad_year:
+      - check_ad_year:                         # YYYY, range 1900–2100
           - BAUJJ_TGT
 
-      - check_mm:
+      - check_mm:                              # MM, range 01–12
           - BAUMM_TGT
 
-      - check_uppercase:
+      - check_uppercase:                       # English letters must be A-Z only
           - TPLNR_TGT
 
-      # Multi-column validator
-      - check_between_time:
+      # ── Multi-column validator ───────────────────────────────────────────────
+      - check_between_time:                    # start datetime must not be after end datetime
           - start_date: ANLBD_TGT
-            start_time: ANLBZ_TGT    # optional — defaults to 00:00:00 if blank
+            start_time: ANLBZ_TGT             # optional — defaults to 00:00:00 if blank
             end_date:   ANLVD_TGT
-            end_time:   ANLVZ_TGT    # optional — defaults to 00:00:00 if blank
+            end_time:   ANLVZ_TGT             # optional — defaults to 00:00:00 if blank
 
-      # Dict-input validator
-      - check_startup_date:
+      # ── Dict-input validator ─────────────────────────────────────────────────
+      - check_startup_date:                    # Plants 2300/2304/4000/1201 must have date 20251001
           - planning_plant: IWERK_TGT
             startup_date:   INBDT_TGT
+
+      # ── DataFrame-level validator ────────────────────────────────────────────
+      - check_group_consistency:              # every row in a group must share the same value
+          - group_by:                         # columns that define a group
+              - WERKS_TGT
+              - ARBPL_TGT
+            sort_by:                          # optional — pre-sort rows before grouping
+              - WERKS_TGT
+              - ARBPL_TGT
+            check_columns:                    # each of these must be consistent within the group
+              - VERWE_TGT
+              - PLANV_TGT
+              - STEUS_TGT
+            condition:                        # optional — skip rows that don't match
+              column: "WERKS_TGT"
+              values: ["1001", "1014"]
+                                              # condition can also be a list (all must match):
+                                              # condition:
+                                              #   - column: "WERKS_TGT"
+                                              #     values: ["1001"]
+                                              #   - column: "AUART_TGT"
+                                              #     values: ["PM01"]
 ```
 
 ### Template: `Config_Ignore_Field` Sheet
@@ -915,6 +989,7 @@ No changes to `src/` are required.
 | Overall | `Check Overall Validation Result` |
 | Mandatory | `Check Mandatory Validation Result` |
 | Length | `Check Length Validation Result` |
+| System Generated | `Check System Generated Validation Result` |
 | Primary Key | `Check PK Validation Result (COL1 + COL2)` |
 | Fixed Values | `Check value fix field on FIELD_TGT` |
 | Newline | `Check Newline Prohibited Field Result` |
@@ -927,4 +1002,6 @@ No changes to `src/` are required.
 | KDS SRC→TGT | `Check KDS Mapping (SRC→TGT): SRC_COL → TGT_COL in 'KDS_SHEET'` |
 | KDS Prohibited | `Check KDS Prohibited: COL in 'KDS_SHEET'` |
 | KDS Completeness | `Check KDS Completeness: COL covers 'KDS_SHEET'` |
-| Custom | `Check COL_TGT (check_ad_date) Format` |
+| Custom (single-col) | `Check COL_TGT (check_ad_date) Format` |
+| Custom (multi-col) | `Check COL1 + COL2 (check_between_time) Format` |
+| Custom (group) | `Check COL1 + COL2 consistency by (GROUP_COL) (check_group_consistency)` |

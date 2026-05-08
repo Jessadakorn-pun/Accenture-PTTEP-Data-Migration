@@ -1,12 +1,12 @@
 MODULE: "Functional Location"
 
 # ─── File locations (relative to project root) ──────────────────────────────
-TEMPLATE_PATH:        "Module/Functional_Location/Template_Functional_Location.xlsx"
+TEMPLATE_PATH:        "Module/Functional_Location/MC2_MNT-PM-M007_Functional_Location_TH_Preload_V1.xlsx"
 DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
 DATA_STANDARD_SHEET:  "Functional Location"
-MAPPING_PATH:         "Metadata/Mapping/KDS_Functional_Location.xlsx"
+MAPPING_PATH:         "Metadata/Mapping/KDS_ALL_MAPPING.xlsx"
 OUTPUT_PATH:          "Output"
-OUTPUT_FILE_NAME:     "validated_functional_location.xlsx"
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M007_Functional_Location_TH_V1 Data Cleansing.xlsx"
 
 # ─── Ignore configuration ────────────────────────────────────────────────────
 CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
@@ -23,48 +23,216 @@ JOBS:
     SHEET_KEYWORD:  "Functional Location (TH,MM)"
     DS_TABLE:       
       - "IFLOT"
-      - "ILOA"                     # S4 Target Database Table Name filter
+      - "IFLOTX"
+      - "ILOA"                
 
     VALIDATIONS:
       - mandatory
       - length
 
     PRIMARY_KEYS:
-      - ["TPLMA_TGT", "TPLNR_TGT"]
+      - ["TPLNR_TGT"]
 
-    FIXED_VALUE_FIELDS: []
+    FIXED_VALUE_FIELDS:
+      - column: "TPLKZ_TGT"
+        allowed_values:
+          - "PTTEP"
 
-    PROHIBITED_NEWLINE_FIELDS:
-      - "PLTXT_TGT"
+      - column: "SUBMTI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "IEQUII_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "EINZLI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "IWERKI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "INGRPI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "LGWID_TGT"
+        allowed_values:
+          - ""
 
-    NON_BLANK_OPTIONAL_FIELDS: []
+      - column: "LGWIDI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "RBNR_I_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "EQART_TGT"
+        allowed_values:
+          - ""
+      
+      - column: "INHER_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "ABCKZI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "EQFNRI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "SWERKI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "STORTI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "MSGRPI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "BEBERI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "PPSID_TGT"
+        allowed_values:
+          - ""
+      
+      - column: "PPSIDI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "KOKRSI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "KOSTLI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "PROIDI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "BUKRSI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "ANLNRI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "ANLUNI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "DAUFNI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "AUFNRI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "TPLNRI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "VKORGI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "VTWEGI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "SPARTI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "ADRNRI_TGT"
+        allowed_values:
+          - "D"
+
+      # WBS NOT DONE
+      # - column: "KOSTL"
+      #   allowed_values:
+      #     - ""
+
+
+    PROHIBITED_NEWLINE_FIELDS: []
+
+    NON_BLANK_OPTIONAL_FIELDS:
+      - column: "TPLMA_TGT"
+        condition:
+          column: "FLTYP_TGT"
+          values: ["2", "3", "4", "5", "6", "7", "8", "9"]
+      
+      - column: "STORT_TGT"
+        condition:
+          column: "FLTYP_TGT"
+          values: ["5", "6", "7", "8", "9"]
+      
+      - column: "BEBER_TGT"
+        condition:
+          column: "FLTYP_TGT"
+          values: ["3", "4", "5", "6", "7", "8", "9"]
+          
+      - column: "IWERK_TGT"
+        condition:
+          column: "FLTYP_TGT"
+          values: ["3", "4", "5", "6", "7", "8", "9"]
+      
+      # WBS NOT DONE
+      # - column: "PROID_TGT"
+      #   condition:
+      #     column: "FLTYP_TGT"
+      #     values: ["5", "6", "7", "8", "9"]
+
+
 
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
 
     SAME_SHEET_REFERENCES:
-      - source_column: "TPLMA_TGT"    # value in this column (child)
-        target_column: "TPLNR_TGT"     # need to have value in this column (parent)
-
+      - source_column: "TPLMA_TGT"    
+        target_column: "TPLNR_TGT"     
+      
     CROSS_SHEET_REFERENCES: []
 
-    # kds_sheet      : sheet name in KDS_Mapping.xlsx
-    # kds_field_name : column name (row 1) in that KDS sheet containing allowed values
-    # source_columns : template column(s) whose values must exist in kds_field_name
     KDS_REFERENCES:
-      # Structure Indicator
-      - kds_sheet: "THMM_T370S"
+      - kds_sheet: "THMM_FLOA_DCT_205"
         kds_columns:
-          - "TPLKZ_TGT"
+          - "SWERK_TGT"
+          - "STORT_TGT"
         source_columns:
-          - "TPLKZ_TGT"
-        check_mapping:
-          kds_src_columns:           # columns ใน KDS sheet ฝั่ง AS-IS
-            - "TPLKZ_SRC"
-          template_src_columns:      # columns ใน template ฝั่ง AS-IS
-            - "TPLKZ_SRC"
+          - "SWERK_SRC"
+          - "STORT_TGT"
+      
+      - kds_sheet: "THMM_FLOA_DCT_205"
+        kds_columns:
+          - "SWERK_TGT"
+          - "BEBER_TGT"
+        source_columns:
+          - "SWERK_SRC"
+          - "BEBER_TGT"
 
-      # FunctLocCategory
-      - kds_sheet: "THMM_T370F"
+      - kds_sheet: "THMM_FLOA_DCT_205"
+        kds_columns:
+          - "SWERK_TGT"
+          - "MSGRP_TGT"
+        source_columns:
+          - "SWERK_SRC"
+          - "MSGRP_TGT"
+
+      - kds_sheet: "THMM_T70F"
         kds_columns:
           - "FLTYP_TGT"
         source_columns:
@@ -74,52 +242,33 @@ JOBS:
             - "FLTYP_SRC"
           template_src_columns:      
             - "FLTYP_SRC"
-
-      # Object Type
-      - kds_sheet: "THMM_T370K"
+      
+      - kds_sheet: "THMM_T024I"
         kds_columns:
-          - "EQART_TGT"
+          - "IWERK_TGT"
+          - "INGRP_TGT"
         source_columns:
-          - "EQART_TGT"
+          - "IWERK_TGT"
+          - "INGRP_TGT"
         check_mapping:
           kds_src_columns:         
-            - "EQART_SRC"
+            - "IWERK_SRC"
+            - "INGRP_SRC"
           template_src_columns:      
-            - "EQART_SRC"
+            - "IWERK_SRC"
+            - "INGRP_SRC"
 
-      # Maintenance Plant
-      - kds_sheet: "THMM_T001W"
+      - kds_sheet: "THMM_T352B"
         kds_columns:
-          - "SWERK_TGT"
+          - "RBNR_TGT"
         source_columns:
-          - "SWERK_TGT"
+          - "RBNR_TGT"
         check_mapping:
           kds_src_columns:         
-            - "SWERK_SRC"
+            - "RBNR_SRC"
           template_src_columns:      
-            - "SWERK_SRC"
+            - "RBNR_SRC"
 
-      # Maintenance Plant + Plant Section + Plant Location
-      - kds_sheet: "THMM_T357"
-        kds_columns:
-          - "SWERK_TGT"
-          - "BEBER_TGT"
-          - "STORT_TGT"
-        source_columns:
-          - "SWERK_TGT"
-          - "BEBER_TGT"
-          - "STORT_TGT"
-        check_mapping:
-          kds_src_columns:         
-            - "SWERK_SRC"
-            - "BEBER_SRC"
-            - "STORT_SRC"
-          template_src_columns:      
-            - "SWERK_SRC"
-            - "BEBER_SRC"
-            - "STORT_SRC"
-
-      # ABC Indicator
       - kds_sheet: "THMM_T370C"
         kds_columns:
           - "ABCKZ_TGT"
@@ -131,85 +280,158 @@ JOBS:
           template_src_columns:      
             - "ABCKZ_SRC"
 
-      # Planning Plant
-      - kds_sheet: "THMM_T399I"
+      - kds_sheet: "THMM_T001W"
         kds_columns:
-          - "IWERK_TGT"
+          - "WERKS_TGT"
         source_columns:
           - "IWERK_TGT"
         check_mapping:
           kds_src_columns:         
-            - "IWERK_SRC"
+            - "WERKS_SRC"
           template_src_columns:      
             - "IWERK_SRC"
       
-      # Planner Group
-      - kds_sheet: "THMM_T024I"
+      - kds_sheet: "THMM_T001W"
         kds_columns:
-          - "IWERK_TGT"
-          - "INGRP_TGT"
+          - "WERKS_TGT"
         source_columns:
-          - "IWERK_TGT"
-          - "INGRP_TGT"
+          - "SWERK_TGT"
         check_mapping:
-          kds_src_columns:           # columns ใน KDS sheet ฝั่ง AS-IS
-            - "IWERK_SRC"
-            - "INGRP_SRC"
-          template_src_columns:      # columns ใน template ฝั่ง AS-IS
-            - "IWERK_SRC"
-            - "INGRP_SRC"
-      
-      # Catalog Profile
-      - kds_sheet: "THMM_T352B"
-        kds_columns:
-          - "RBNR_TGT"
-        source_columns:
-          - "RBNR_TGT"
-        check_mapping:
-          kds_src_columns:           # columns ใน KDS sheet ฝั่ง AS-IS
-            - "RBNR_SRC"
-          template_src_columns:      # columns ใน template ฝั่ง AS-IS
-            - "RBNR_SRC"
+          kds_src_columns:         
+            - "WERKS_SRC"
+          template_src_columns:      
+            - "SWERK_SRC"
 
-      # Country 
-      - kds_sheet: "THMM_T005"
-        kds_columns:
-          - "HERLD_TGT"
-        source_columns:
-          - "HERLD_TGT"
 
-    CUSTOM_VALIDATIONS:
-      - check_ad_date:
-        - DATAB_TGT      # ระบุ column ที่ต้องการตรวจ format วันที่ DD.MM.YYYY
-        - ANSDT_TGT
-      - check_ad_year:
-        - BAUJJ_TGT
-      - check_mm:
-        - BAUMM_TGT
+
+    KDS_PROHIBITED_REFERENCES:
+      - kds_sheet: "THMMMY_FLOC"
+        kds_columns: ["UNQ_TPLNR_TGT_DEL_THMM"]
+        source_columns: ["TPLNR_TGT"]
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "THMMMY_FLOC"
+        kds_field_name: "TPLNR_TGT_DCT_THMM"       
+        source_column:  "TPLNR_TGT"   
+
+    START_WITH_FIELDS: []
+      # เช็คมือ
+      # # For Plant 1001 (Arti Plant) cost center have to start with "P"
+      # - column: "KOSTL_TGT"
+      #   prefix:
+      #     - "P"
+      #   condition:
+      #     column: "IWERK_TGT"
+      #     values: ["1001"]
+          
+    CUSTOM_VALIDATIONS: []
 
 
 
 
-  - NAME:           "Individual Object Status(TH,MM)"
-    SHEET_KEYWORD:  "Individual Object Status(TH,MM)"
-    DS_TABLE:   
-      - "IFLOT"    
-      - "ILOA"
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "Individual Object Status(TH,MM)"                 
+    SHEET_KEYWORD: "Individual Object Status(TH,MM)"             
+    DS_TABLE:
+      - "JEST"
 
     VALIDATIONS:
       - mandatory
       - length
 
-    PRIMARY_KEYS:
+    PRIMARY_KEYS:                  
+      - ["TPLNR_TGT", "STAT_TGT"]
 
-    FIXED_VALUE_FIELDS: []
+    FIXED_VALUE_FIELDS:
+      - column: "INACT_TGT"
+        allowed_values:
+          - "X"
+
     PROHIBITED_NEWLINE_FIELDS: []
-    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
-    SAME_SHEET_REFERENCES: []
-    CROSS_SHEET_REFERENCES:
-      - source_columns:       ["TPLNR_TGT"]           # column ใน sheet นี้ (source)
-        target_sheet_keyword: "Functional Location (TH,MM)"      # ชื่อ sheet ปลายทาง (substring match)
-        target_columns:       ["TPLNR_TGT"]            # column ใน sheet ปลายทาง
-    KDS_REFERENCES: []
-    CUSTOM_VALIDATIONS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES: 
+      - source_columns:       ["TPLNR_TGT"]
+        target_sheet_keyword: "Functional Location (TH,MM)"
+        target_columns:       ["TPLNR_TGT"]
+
+    KDS_REFERENCES:     [] 
+    KDS_PROHIBITED_REFERENCES:
+      - kds_sheet: "THMMMY_FLOC"
+        kds_columns: ["EXC_JEST_STAT"]
+        source_columns: ["STAT_TGT"]
+
+      - kds_sheet: "THMMMY_FLOC"
+        kds_columns: ["UNQ_TPLNR_TGT_DEL_THMM"]
+        source_columns: ["TPLNR_TGT"]
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "THMMMY_FLOC"
+        kds_field_name: "TPLNR_TGT_DCT_THMM"       
+        source_column:  "TPLNR_TGT"   
+
+    CUSTOM_VALIDATIONS:     [] 
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "Long Text_TH,MM,MY"                 
+    SHEET_KEYWORD: "Long Text_TH,MM,MY"             
+    DS_TABLE:
+      - "STXH"
+      - "STXL"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: []
+    FIXED_VALUE_FIELDS: []
+
+    PROHIBITED_NEWLINE_FIELDS:
+      - "/BOA/READ_TEXT-LINE"
+
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES: 
+      - source_columns:       ["TPLNR"]
+        target_sheet_keyword: "Functional Location (TH,MM)"
+        target_columns:       ["TPLNR_TGT"]
+
+    KDS_REFERENCES:     [] 
+
+    KDS_PROHIBITED_REFERENCES:
+      - kds_sheet: "THMMMY_FLOC"
+        kds_columns: ["UNQ_TPLNR_TGT_DEL_THMM"]
+        source_columns: ["TPLNR"]
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "THMMMY_FLOC"
+        kds_field_name: "TPLNR_TGT_DCT_THMM"       
+        source_column:  "TPLNR"   
+
+    CUSTOM_VALIDATIONS:     [] 
+

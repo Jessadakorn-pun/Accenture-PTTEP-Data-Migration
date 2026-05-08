@@ -36,9 +36,9 @@ JOBS:
     FIXED_VALUE_FIELDS:
       # Only include active plants listed in the 'RR_TH_Active Plants' tab 
       #(refer to the PM Work Center Data Standard)
-      - column: "WERKS_TGT"
+      - column: "WERKS_SRC"
         allowed_values:
-          - “1201"
+          - "1201"
           - "1202"
           - "1602"
           - "1603"
@@ -69,7 +69,7 @@ JOBS:
       # Control Key (STEUS) Default: PM01
       - column: "STEUS_TGT"
         allowed_values:
-          - “PM01"
+          - "PM01"
 
     PROHIBITED_NEWLINE_FIELDS:     [] 
 
@@ -183,11 +183,11 @@ JOBS:
       # using the Plant and Work Center combination as the reference key
       - kds_sheet: "MY_WERK_ARBPL_EXC"
         kds_columns:
-          - "WERKS_TGT"
-          - "ARBPL_TGT"
+          - "WERKS_SRC"
+          - "ARBPL_SRC"
         source_columns:
-          - "WERKS_TGT"
-          - "ARBPL_TGT"
+          - "WERKS_SRC"
+          - "ARBPL_SRC"
 
     CUSTOM_VALIDATIONS:
       # Check BEGDA date format YYYYMMDD
