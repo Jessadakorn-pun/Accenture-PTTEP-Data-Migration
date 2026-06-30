@@ -1,0 +1,318 @@
+MODULE: "Document Info Record"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Document_Info_Record/MC2_MNT-PM-M015-DIR_MY Preload v1.0.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "DIR"
+MAPPING_PATH:         "Metadata/Mapping/KDS_DIR.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M015-DIR_MY Preload v1.0 Data Cleansing.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
+JOBS:
+
+
+  - NAME:          "Document Info Record"                 
+    SHEET_KEYWORD: "Document Info Record"             
+    DS_TABLE:
+      - "DRAW"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["DOKAR_TGT", "DOKNR_TGT", "DOKVR_TGT", "DOKTL_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "DTTRG_TGT"
+        allowed_values:
+          - ""
+      
+      - column: "DTTRG1_TGT"
+        allowed_values:
+          - ""
+      
+      - column: "MRK_DTTRG_TGT"
+        allowed_values:
+          - ""
+      
+      - column: "MRK_DTTRG1_TGT"
+        allowed_values:
+          - ""
+      
+      - column: "DTTRG_TGT"
+        allowed_values:
+          - ""
+      
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES: []
+      
+    KDS_REFERENCES:
+      - kds_sheet: "MY_TDWP"
+        kds_columns:
+          - "DAPPL_TGT"
+        source_columns:
+          - "DAPPL_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "DAPPL_SRC"
+          template_src_columns:
+            - "DAPPL_SRC"
+
+
+      - kds_sheet: "MY_TDWP"
+        kds_columns:
+          - "DAPPL_TGT"
+        source_columns:
+          - "DAPPL1_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "DAPPL_SRC"
+          template_src_columns:
+            - "DAPPL1_SRC"
+      
+
+      - kds_sheet: "MY_TDWA"
+        kds_columns:
+          - "DOKAR_TGT"
+        source_columns:
+          - "DOKAR_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "DOKAR_SRC"
+          template_src_columns:
+            - "DOKAR_SRC"
+
+      
+      - kds_sheet: "MY_TDWS"
+        kds_columns:
+          - "DOKAR_TGT"
+          - "DOKST_TGT"
+        source_columns:
+          - "DOKAR_TGT"
+          - "DOKST_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "DOKAR_SRC"
+            - "DOKST_SRC"
+          template_src_columns:
+            - "DOKAR_SRC"
+            - "DOKST_SRC"
+      
+
+      - kds_sheet: "MY_T024L"
+        kds_columns:
+          - "LABOR_TGT"
+        source_columns:
+          - "LABOR_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "LABOR_SRC"
+          template_src_columns:
+            - "LABOR_SRC"
+      
+    
+      - kds_sheet: "MY_TDWA"
+        kds_columns:
+          - "DOKAR_TGT"
+        source_columns:
+          - "PREAR_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "DOKAR_SRC"
+          template_src_columns:
+            - "PREAR_SRC"
+
+
+      - kds_sheet: "MY_T001W"
+        kds_columns:
+          - "WERKS_TGT"
+        source_columns:
+          - "WERKA_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "WERKS_SRC"
+          template_src_columns:
+            - "WERKA_SRC"
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+
+    START_WITH_FIELDS:
+      - column: "DOKNR_TGT"
+        prefix:
+          - "MY"
+
+    CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  # - NAME:          "Document-Object Link"
+  #   SHEET_KEYWORD: "Document-Object Link"
+  #   DS_TABLE:
+  #     - "DRAD"
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:
+  #     - ["DOKAR_TGT", "DOKNR_TGT", "DOKVR_TGT", "DOKTL_TGT", "DOKOB_TGT", "OBZAE_TGT", "OBJKY_TGT"]
+
+  #   FIXED_VALUE_FIELDS: []
+  #   PROHIBITED_NEWLINE_FIELDS: []
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
+  #   CROSS_SHEET_REFERENCES:
+  #     - source_columns:       ["DOKNR_TGT"]
+  #       target_sheet_keyword: "Document Info Record"
+  #       target_columns:       ["DOKNR_TGT"]
+      
+  #   KDS_REFERENCES:
+  #     - kds_sheet: "MY_TDWA"
+  #       kds_columns:
+  #         - "DOKAR_TGT"
+  #       source_columns:
+  #         - "DOKAR_TGT"
+  #       check_mapping:
+  #         kds_src_columns:
+  #           - "DOKAR_SRC"
+  #         template_src_columns:
+  #           - "DOKAR_SRC"
+
+  #     - kds_sheet: "MY_FLOC_EQ"
+  #       kds_columns:
+  #         - "DOKOB_TGT"
+  #         - "OBJKY_TGT"
+  #       source_columns:
+  #         - "DOKOB_TGT"
+  #         - "OBJKY_TGT"
+
+
+  #   KDS_PROHIBITED_REFERENCES: []
+  #   KDS_COMPLETENESS_REFERENCES: []
+    
+  #   START_WITH_FIELDS:
+  #     - column: "DOKNR_TGT"
+  #       prefix:
+  #         - "MY"
+
+  #   CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "DIR Text"                 
+    SHEET_KEYWORD: "DIR Text"             
+    DS_TABLE:
+      - "STXL"
+      - "STXH"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: []
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["DOKNR_TGT"]
+        target_sheet_keyword: "Document Info Record"
+        target_columns:       ["DOKNR_TGT"]
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+
+    START_WITH_FIELDS:
+      - column: "DOKNR_TGT"
+        prefix:
+          - "MY"
+          
+    CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  # - NAME:          "DIR Long Text"                 
+  #   SHEET_KEYWORD: "DIR Long Text"             
+  #   DS_TABLE:
+  #     - "STXL"
+  #     - "STXH"
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS: []
+  #   FIXED_VALUE_FIELDS: []
+  #   PROHIBITED_NEWLINE_FIELDS: []
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
+    
+  #   CROSS_SHEET_REFERENCES:
+  #     - source_columns:       ["DOKNR"]
+  #       target_sheet_keyword: "Document Info Record"
+  #       target_columns:       ["DOKNR_TGT"]
+
+  #   KDS_PROHIBITED_REFERENCES: []
+  #   KDS_COMPLETENESS_REFERENCES: []
+  #   CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+

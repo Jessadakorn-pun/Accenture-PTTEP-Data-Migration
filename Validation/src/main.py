@@ -102,7 +102,10 @@ def _run_job(
     # ── 1. Mandatory + Length ─────────────────────────────────────────────────
     validations = job_config.get("VALIDATIONS", ["mandatory", "length"])
     if "mandatory" in validations or "length" in validations:
-        df = validate_mandatory_and_length(df, data_cols, field_metadata, label_map=label_map)
+        df = validate_mandatory_and_length(
+            df, data_cols, field_metadata, label_map=label_map,
+            check_system_generated="system_generated" in validations,
+        )
         print("  ✅  Mandatory & Length")
 
     # ── 2. Primary keys ───────────────────────────────────────────────────────
@@ -159,9 +162,10 @@ def _run_job(
         kds_sheet      = kds_ref.get("kds_sheet")
         # kds_field_name (str)  → single-column match
         # kds_columns    (list) → composite/tuple match
-        kds_field_name = kds_ref.get("kds_field_name") or kds_ref.get("kds_columns")
-        source_cols    = kds_ref.get("source_columns", [])
-        kds_condition  = kds_ref.get("condition")
+        kds_field_name    = kds_ref.get("kds_field_name") or kds_ref.get("kds_columns")
+        source_cols       = kds_ref.get("source_columns", [])
+        kds_condition     = kds_ref.get("condition")
+        skip_if_any_blank = kds_ref.get("skip_if_any_blank", False)
 
         if not kds_sheet or not source_cols or not kds_field_name:
             print("  ⚠️   KDS reference missing required keys (kds_sheet, kds_field_name/kds_columns, source_columns) — skipped.")
@@ -176,6 +180,7 @@ def _run_job(
                 df, kds_mappings[kds_sheet], source_cols, label_map, kds_sheet,
                 kds_field_name=kds_field_name,
                 condition=kds_condition,
+                skip_if_any_blank=skip_if_any_blank,
             )
             df[col_name] = results
             print(f"  ✅  KDS Reference: '{kds_sheet}' / '{kds_field_name}'")

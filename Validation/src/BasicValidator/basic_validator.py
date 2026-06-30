@@ -74,6 +74,14 @@ def _format_errors(errors: list) -> str:
     return PASS if not errors else _join_errors(errors)
 
 
+_BLANK_STRS = {"NAN", "NONE", "NAT"}
+
+def _normalize_series(series: pd.Series) -> pd.Series:
+    """Strip whitespace and normalize nan-like strings to empty string for consistent lookup."""
+    s = series.astype(str).str.strip()
+    return s.where(~s.str.upper().isin(_BLANK_STRS), "")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Date / Time format helpers
 # ─────────────────────────────────────────────────────────────────────────────
@@ -118,6 +126,7 @@ def validate_mandatory_and_length(
     data_columns: list,
     field_metadata: dict,
     label_map: dict = None,
+    check_system_generated: bool = False,
 ) -> pd.DataFrame:
     """
     Add 'Check Mandatory Validation Result' and 'Check Length Validation Result'.
@@ -155,7 +164,7 @@ def validate_mandatory_and_length(
                 mandatory_errors[idx].append(f"{FAIL} {col}: Missing mandatory value")
 
         # ── System Generated — must be blank ───────────────────────
-        if meta.get("system_generated"):
+        if check_system_generated and meta.get("system_generated"):
             for idx in df.index[has_val]:
                 system_gen_errors[idx].append(f"{FAIL} {col}: System-generated field must be blank")
 
@@ -176,9 +185,10 @@ def validate_mandatory_and_length(
                         f"{FAIL} {col}: length {len(val)} exceeds max {field_length} (value='{val}')"
                     )
 
-    df["Check Mandatory Validation Result"]        = [_format_errors(mandatory_errors[i])  for i in df.index]
-    df["Check Length Validation Result"]           = [_format_errors(length_errors[i])      for i in df.index]
-    df["Check System Generated Validation Result"] = [_format_errors(system_gen_errors[i])  for i in df.index]
+    df["Check Mandatory Validation Result"] = [_format_errors(mandatory_errors[i]) for i in df.index]
+    df["Check Length Validation Result"]    = [_format_errors(length_errors[i])    for i in df.index]
+    if check_system_generated:
+        df["Check System Generated Validation Result"] = [_format_errors(system_gen_errors[i]) for i in df.index]
     return df
 
 
@@ -256,7 +266,7 @@ def validate_fixed_values(
         else:
             meets = pd.Series(True, index=df.index)
 
-        fail_mask = meets & ~blank_mask & ~in_allowed
+        fail_mask = meets & ~in_allowed
         results   = pd.Series(PASS, index=df.index, dtype=object)
         for i in df.index[fail_mask]:
             results.at[i] = f"{FAIL} {col}: value '{vals.at[i]}' not in allowed list {allowed}"
@@ -490,6 +500,7 @@ def validate_kds_reference(
     kds_name: str,
     kds_field_name: str = None,
     condition=None,
+    skip_if_any_blank: bool = False,
 ) -> tuple:
     """
     Validate field values against a KDS reference table.
@@ -542,11 +553,11 @@ def validate_kds_reference(
     # ── Pre-build KDS lookup set (once) ──────────────────────────────────────
     kds_cols_ordered = [col_map[s] for s in source_columns]
     kds_set = set(
-        map(tuple, kds_df[kds_cols_ordered].astype(str).apply(lambda c: c.str.strip()).values)
+        map(tuple, kds_df[kds_cols_ordered].apply(_normalize_series).values)
     )
 
     # ── Pre-strip template columns + condition mask ───────────────────────────
-    tmpl_arr = {c: df[c].astype(str).str.strip().values for c in source_columns}
+    tmpl_arr = {c: _normalize_series(df[c]).values for c in source_columns}
     meets    = (
         df.apply(lambda r: _meets_condition(r, condition), axis=1).values
         if condition else None
@@ -560,6 +571,9 @@ def validate_kds_reference(
 
         vals = tuple(tmpl_arr[c][i] for c in source_columns)
         if all(v == "" for v in vals):
+            results.append(PASS)
+            continue
+        if skip_if_any_blank and any(v == "" for v in vals):
             results.append(PASS)
             continue
 
@@ -762,10 +776,10 @@ def validate_kds_prohibited(
     # ── Pre-build KDS prohibited set (once) ──────────────────────────────────
     kds_cols_ordered = [col_map[s] for s in source_columns]
     kds_set = set(
-        map(tuple, kds_df[kds_cols_ordered].astype(str).apply(lambda c: c.str.strip()).values)
+        map(tuple, kds_df[kds_cols_ordered].apply(_normalize_series).values)
     )
 
-    tmpl_arr = {c: df[c].astype(str).str.strip().values for c in source_columns}
+    tmpl_arr = {c: _normalize_series(df[c]).values for c in source_columns}
 
     results = []
     for i in range(len(df)):
