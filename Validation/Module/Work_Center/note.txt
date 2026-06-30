@@ -1,0 +1,11 @@
+- KAKO KAKT not contain data for plant 1001 but in DCFS said 1001 copy data from 1014
+
+- STXH_STXL lack of column WERK ARBPL for  mapping to Work Center Header
+
+- Missing Column from prevoius template
+    - HEADER column BEGDA หาย
+    - Check More
+
+- KDS Check More
+- Cost Center of Plant 1001 must begin with P* (base on KT from P'Sea)
+- CACO Duplicate Record

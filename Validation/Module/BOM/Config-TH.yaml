@@ -1,0 +1,297 @@
+MODULE: "Bill of Material"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/BOM/MC2_MNT-PM-M011_BOM_TH_Preload_V1.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "BOM"
+MAPPING_PATH:         "Metadata/Mapping/KDS_BOM.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M011_BOM_TH_Preload_V1 Data Cleansing.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
+JOBS:
+  - NAME:           "Material BoM_TH,MM (MAST)"
+    SHEET_KEYWORD:  "Material BoM_TH,MM (MAST)"
+    DS_TABLE:       
+      - "MAST"     
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["MATNR_TGT", "WERKS_TGT", "STLAN_TGT", "STLNR_TGT", "STLAL_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "STLAN_TGT"
+        allowed_values:
+          - "4"
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES:
+      - kds_sheet: "THMM_T001W"
+        kds_columns:
+          - "WERKS_TGT"
+        source_columns:
+          - "WERKS_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "WERKS_SRC"
+          template_src_columns: 
+            - "WERKS_SRC" 
+      
+      - kds_sheet: "SCM_MATNUM"
+        kds_columns:
+          - "MATNUM_GENERAL_DATA"
+          # - "WERKS_TGT"
+        source_columns:
+          - "MATNR_TGT"
+          # - "WERKS_TGT"
+
+     
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+  - NAME:           "Equipment BoM_TH,MM(EQST)"
+    SHEET_KEYWORD:  "Equipment BoM_TH,MM(EQST)"
+    DS_TABLE:       
+      - "EQST"     
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["EQUNR_TGT", "WERKS_TGT", "STLAN_TGT", "STLNR_TGT", "STLAL_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "STLAN_TGT"
+        allowed_values:
+          - "4"
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES:
+      - kds_sheet: "THMM_T001W"
+        kds_columns:
+          - "WERKS_TGT"
+        source_columns:
+          - "WERKS_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "WERKS_SRC"
+          template_src_columns: 
+            - "WERKS_SRC" 
+
+      - kds_sheet: "DCT206"
+        kds_columns:
+          - "EQUNR_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+     
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:           "BOM Header_TH,MM(STKO)"
+    SHEET_KEYWORD:  "BOM Header_TH,MM(STKO)"
+    DS_TABLE:       
+      - "STKO"     
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["STLTY_TGT", "STLNR_SRC", "STLAL_TGT", "STKOZ_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "BMENG_TGT"
+        allowed_values:
+          - "1"
+      
+      - column: "BMEIN_TGT"
+        allowed_values:
+          - "PC"
+
+      - column: "STLST_TGT"
+        allowed_values:
+          - "1"
+
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+    KDS_REFERENCES:
+      - kds_sheet: "THMM_T001W"
+        kds_columns:
+          - "WERKS_TGT"
+        source_columns:
+          - "WRKAN_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "WERKS_SRC"
+          template_src_columns: 
+            - "WRKAN_SRC"
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:           "BOM ITEM_TH,MM(STPO)"
+    SHEET_KEYWORD:  "BOM ITEM_TH,MM(STPO)"
+    DS_TABLE:       
+      - "STPO"     
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["STLTY_TGT", "STLNR_SRC", "STLKN_TGT", "STPOZ_TGT"]
+
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES:
+      - kds_sheet: "SCM_MATNUM"
+        kds_columns:
+          - "MATNUM_GENERAL_DATA"
+        source_columns:
+          - "IDNRK_TGT"
+        
+      - kds_sheet: "THMM_T418"
+        kds_columns:
+          - "POSTP_TGT"
+        source_columns:
+          - "POSTP_TGT"  
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:           "Permanent BOM Data_TH,MM(STZU)"
+    SHEET_KEYWORD:  "Permanent BOM Data_TH,MM(STZU)"
+    DS_TABLE:       
+      - "STZU"     
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["STLTY_TGT", "STLNR_SRC"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "BMENG_TGT"
+        allowed_values:
+          - "1"
+      
+      - column: "BMEIN_TGT"
+        allowed_values:
+          - "PC"
+
+      - column: "STLST_TGT"
+        allowed_values:
+          - "1"
+
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES:
+      - kds_sheet: "THMM_T001W"
+        kds_columns:
+          - "WERKS_TGT"
+        source_columns:
+          - "WRKAN_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "WERKS_SRC"
+          template_src_columns: 
+            - "WRKAN_SRC"
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+

@@ -1,0 +1,105 @@
+MODULE: "Measuring Point"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Measuring_Point/MC2_MNT-PM-M013_Measuring_Point_TH_Preload_V1.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "Functional Location"
+MAPPING_PATH:         "Metadata/Mapping/KDS_Meassuring_Point.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M013_Measuring_Point_TH_Preload_V1.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
+JOBS:
+  - NAME:           "Measuring Point (TH,MM)" 
+    SHEET_KEYWORD:  "Measuring Point (TH,MM)"
+    DS_TABLE:       
+      - "IMPTT"          
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["POINT_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "INACT_TGT"
+        allowed_values:
+          - ""
+      
+      - column: "INDCT_TGT"
+        allowed_values:
+          - "X"
+
+      - column: "LVORM_TGT"
+        allowed_values:
+          - ""
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES:
+      - kds_sheet: "THMM_T370P"
+        kds_columns:
+          - "MPTYP_TGT"
+        source_columns:
+          - "MPTYP_TGT"
+      
+      - kds_sheet: "FL_EQ_List"
+        kds_columns:
+          - "FLOC_EQ_TH"
+        source_columns:
+          - "TPLNR_SRC"
+      
+      - kds_sheet: "FL_EQ_List"
+        kds_columns:
+          - "FLOC_EQ_TH"
+        source_columns:
+          - "EQUNR_SRC"
+
+      # เช็คมือ look up POINT_SRC ถ้ามีใน mapping จะใช้ค่า TO-BE FL/EQ มาใส่ใน FLOC_EQ เเต่ถ้า POINT_SRC ไม่มีใน mapping จะใช้ MPOBJ_SRC
+      # - kds_sheet: "FL_EQ_List"
+      #   kds_columns:
+      #     - "FLOC_EQ_MY"
+      #   source_columns:
+      #     - "FLOC_EQ_TGT"
+
+      # - kds_sheet: "Char_List"
+      #   kds_columns:
+      #     - "ATINN_TGT"
+      #   source_columns:
+      #     - "ATINN_TGT"
+      
+      - kds_sheet: "THMMMY_T006"
+        kds_columns:
+          - "UC_MSEHI_TGT"
+        source_columns:
+          - "MRNGU_TGT"
+        check_mapping:
+          kds_src_columns:         
+            - "UC_MSEHI_SRC"
+          template_src_columns:      
+            - "MRNGU_SRC"
+
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []          
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+ 

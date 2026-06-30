@@ -1,0 +1,402 @@
+MODULE: "Functional Location"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Maintenance_Plan/MC2_MNT-PM-M014_Maintenance_Plan_&_Item_TH_Preload V2.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "Maintenance Plan"
+MAPPING_PATH:         "Metadata/Mapping/KDS_Maintenance_Plan.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M014_Maintenance_Plan_&_Item_TH_Preload V2 Data Cleasing 2.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
+JOBS:
+
+
+  - NAME:          "Maintenance Plan"                 
+    SHEET_KEYWORD: "Maintenance Plan"             
+    DS_TABLE:
+      - "MPLA"
+      - "MMPT"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["Maintenance Plan_TGT", "Maintenance Plan Category_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "Calculation Type of Call Horizon_TGT"
+        allowed_values:
+          - "%"
+      
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["Maintenance Strategy_TGT"]
+        target_sheet_keyword: "Maintenance Strategy"
+        target_columns:       ["Name_TGT"]
+      
+    KDS_REFERENCES:
+      - kds_sheet: "THMM_T399W"
+        kds_columns:
+          - "MPTYP_TGT"
+        source_columns:
+          - "Maintenance Plan Category_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "MPTYP_SRC"
+          template_src_columns:
+            - "Maintenance Plan Category_SRC"
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: [] 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "Maintenance Item"                 
+    SHEET_KEYWORD: "Maintenance Item"             
+    DS_TABLE:
+      - "MPLA"
+      - "MPOS"
+      - "ILOA"
+      - "CRHD"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: []
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["Maintenance Plan_TGT"]
+        target_sheet_keyword: "Maintenance Plan"
+        target_columns:       ["Maintenance Plan_TGT"]
+
+    KDS_REFERENCES:
+      - kds_sheet: "THMM_T353I"
+        kds_columns:
+          - "ILART_TGT"
+        source_columns:
+          - "Maintenance activity type_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "ILART_SRC"
+          template_src_columns:
+            - "Maintenance activity type_SRC"
+      
+      
+      - kds_sheet: "THMM_T399I"
+        kds_columns:
+          - "IWERK_TGT"
+        source_columns:
+          - "Maintenance Planning Plant_TGT_1"
+        check_mapping:
+          kds_src_columns:
+            - "IWERK_SRC"
+          template_src_columns:
+            - "Maintenance Planning Plant_SRC_1"
+
+      
+      # - kds_sheet: "THMM_T399I"
+      #   kds_columns:
+      #     - "IWERK_TGT"
+      #   source_columns:
+      #     - "Maintenance Planning Plant_TGT_2"
+      #   check_mapping:
+      #     kds_src_columns:
+      #       - "IWERK_SRC"
+      #     template_src_columns:
+      #       - "Maintenance Planning Plant_SRC_2"
+
+      
+      - kds_sheet: "THMM_T003O"
+        kds_columns:
+          - "AUART_TGT"
+        source_columns:
+          - "Order Type_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "AUART_SRC"
+          template_src_columns:
+            - "Order Type_SRC"
+
+      
+      - kds_sheet: "THMM_T356"
+        kds_columns:
+          - "PRIOK_TGT"
+        source_columns:
+          - "Priority_TGT"
+        check_mapping:
+          kds_src_columns:
+            - "PRIOK_SRC"
+          template_src_columns:
+            - "Priority_SRC"
+
+
+      - kds_sheet: "DCT214"
+        kds_columns:
+          - "IWERK_TGT"
+          - "ARBPL_TGT"
+        source_columns:
+          - "Maintenance Planning Plant_TGT_2"
+          - "Object ID of the Work Center_TGT"
+
+      
+      - kds_sheet: "THMM_T024I"
+        kds_columns:
+          - "IWERK_TGT"
+          - "WPGRP_TGT"
+        source_columns:
+          - "Maintenance Planning Plant_TGT_2"
+          - "Planner Group for Customer Service and Plant Maintenance_TGT"
+
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "Object List"                 
+    SHEET_KEYWORD: "Object List"             
+    DS_TABLE:
+      - "MPLA" 
+      - "MPOS" 
+      - "OBJK" 
+      - "ILOA"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: []
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["Maintenance Plan_TGT"]
+        target_sheet_keyword: "Maintenance Plan"
+        target_columns:       ["Maintenance Plan_TGT"]
+
+    KDS_REFERENCES: []
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "Maintenance Strategy"                 
+    SHEET_KEYWORD: "Maintenance Strategy"             
+    DS_TABLE:
+      - "T351"
+      - "T351T"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: []
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["Name_TGT"]
+        target_sheet_keyword: "Maintenance Strategy"
+        target_columns:       ["Name_TGT"] 
+
+    KDS_REFERENCES: []
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "Package"                 
+    SHEET_KEYWORD: "Package"             
+    DS_TABLE:
+      - "T351"
+      - "T351X"
+      - "T351P"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: []
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["Name_TGT"]
+        target_sheet_keyword: "Maintenance Strategy"
+        target_columns:       ["Name_TGT"] 
+
+    KDS_REFERENCES: []
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "Long Text Maintenance Plan"                 
+    SHEET_KEYWORD: "Long Text Maintenance Plan"             
+    DS_TABLE:
+      - "STXH"
+      - "STXL"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: []
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["Maintenance_Plan"]
+        target_sheet_keyword: "Maintenance Plan"
+        target_columns:       ["Maintenance Plan_TGT"] 
+
+    KDS_REFERENCES: []
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+
+
+
+
+
+  - NAME:          "Long Text Maintenance Item"                 
+    SHEET_KEYWORD: "Long Text Maintenance Item"             
+    DS_TABLE:
+      - "STXH"
+      - "STXL"
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS: []
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:     [] 
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES:         []
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["Maintenance_Plan", "Maintenance_Item"]
+        target_sheet_keyword: "Maintenance Item"
+        target_columns:       ["Maintenance Plan_TGT", "Maintenance item_TGT"] 
+
+    KDS_REFERENCES: []
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+  
+  

@@ -8,3 +8,4 @@
           - "ZEQ-SW"
           - "ZEQ-WI"
         Characteristic จะต้องเป็น SCE_GROUP เท่านั้น (DONE)
+- DCT KSML - มี space ใน ATNAM เช็คด้วย

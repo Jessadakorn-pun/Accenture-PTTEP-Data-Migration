@@ -1,0 +1,146 @@
+MODULE: "Functional Location"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Functional_Location/DCT-TH-2.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "Functional Location DCT"
+MAPPING_PATH:         "Metadata/Mapping/KDS_FLOC_EQ.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "DCT-205-206.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
+JOBS:
+  
+  # - NAME:          "DCT_FL_Attributes"                 
+  #   SHEET_KEYWORD: "DCT_FL_Attributes"             
+  #   DS_TABLE:
+  #     - "DCT205"
+  #   VALIDATIONS: []
+
+  #   PRIMARY_KEYS:                  
+  #     - ["TPLNR"]
+
+  #   FIXED_VALUE_FIELDS: []
+  #   PROHIBITED_NEWLINE_FIELDS: []
+  #   NON_BLANK_OPTIONAL_FIELDS:
+  #     - column: "STORT"
+  #       condition:
+  #         column: "FLTYP_TGT"
+  #         values: ["5", "6", "7", "8"]
+
+  #     - column: "BEBER"
+  #       condition:
+  #         column: "FLTYP_TGT"
+  #         values: ["3", "4", "5", "6", "7", "8", "9"]
+      
+  #     - column: "PROID"
+  #       condition:
+  #         column: "FLTYP_TGT"
+  #         values: ["5", "6", "7", "8", "9"]
+    
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES: []
+  #   CROSS_SHEET_REFERENCES: []
+  #   KDS_REFERENCES:
+  #     - kds_sheet: "DCT205"
+  #       kds_columns:
+  #         - "SWERK_STORT"
+  #         - "STORT"
+  #       source_columns:
+  #         - "SWERK_TGT"
+  #         - "STORT"
+      
+  #     - kds_sheet: "DCT205"
+  #       kds_columns:
+  #         - "SWERK_BEBER"
+  #         - "BEBER"
+  #       source_columns:
+  #         - "SWERK_TGT"
+  #         - "BEBER"
+
+  #     - kds_sheet: "CC_TO_WBS"
+  #       kds_columns:
+  #         - "PROID_TGT"
+  #       source_columns:
+  #         - "PROID"
+
+  #   KDS_PROHIBITED_REFERENCES: []
+  #   KDS_COMPLETENESS_REFERENCES: []
+  #   CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+  - NAME:          "DCT_EQ_Attributes"                 
+    SHEET_KEYWORD: "DCT_EQ_Attributes"             
+    DS_TABLE:
+      - "DCT206"
+    VALIDATIONS: []
+
+    PRIMARY_KEYS:                  
+      - ["EQUNR"]
+
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS:
+      - column: "STORT"
+        condition:
+          column: "EQTYP"
+          values: ["C", "G", "M", "P", "Q", "S"]
+      
+      - column: "PROID"
+        condition:
+          column: "EQTYP"
+          values: ["C", "G", "M", "P", "Q", "S"]
+
+    
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+    KDS_REFERENCES:
+      - kds_sheet: "DCT205"
+        kds_columns:
+          - "SWERK_STORT"
+          - "STORT"
+        source_columns:
+          - "SWERK_TGT"
+          - "STORT"
+      
+      - kds_sheet: "DCT205"
+        kds_columns:
+          - "SWERK_BEBER"
+          - "BEBER"
+        source_columns:
+          - "SWERK_TGT"
+          - "BEBER"
+      
+      - kds_sheet: "CC_TO_WBS"
+        kds_columns:
+          - "PROID_TGT"
+        source_columns:
+          - "PROID"
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    CUSTOM_VALIDATIONS:     [] 
+  
+  
+
+
+
+
+
+
+
+
+

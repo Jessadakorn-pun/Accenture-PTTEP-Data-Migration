@@ -1,0 +1,151 @@
+MODULE: "PM Classification"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/PM_Classification/[SHANA] MC1_MNT-PM-M009_PM_Classification_TH_Preload.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "PM Classification"
+MAPPING_PATH:         "Metadata/Mapping/KDS_PM_Classification.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "[SHANA] MC1_MNT-PM-M009_PM_Classification_TH_Preload Data Cleansing 3.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
+JOBS:
+  - NAME:           "Classification of Object (TH)"
+    SHEET_KEYWORD:  "Classification of Object (TH)"
+    DS_TABLE:       
+      - "KSSK"    
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["OBJEK_TGT", "MAFID_TGT", "KLART_TGT", "CLINT_TGT", "ADZHL_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "KLART_TGT"
+        allowed_values:
+          - "002"
+          - "003"
+
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES:
+      - kds_sheet: "THMM_CLASS"
+        kds_columns:
+          - "CLASS_TGT"
+        source_columns:
+          - "CLASS_TGT"
+      
+      - kds_sheet: "THMM_FLOC_EQ"
+        kds_columns:
+          - "OBJEK_TGT"
+          - "KLART_TGT"
+        source_columns:
+          - "OBJEK_TGT"
+          - "KLART_TGT"
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+
+    START_WITH_FIELDS:
+      # THMM - Class for THMM migrate only class that start with "ZFL-" and "ZEQ-"
+      - column: "CLASS_TGT"
+        prefix:
+          - "ZFL-"
+          - "ZEQ-"
+
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:           "Characteristic Values (TH)"
+    SHEET_KEYWORD:  "Characteristic Values (TH)"
+    DS_TABLE:       
+      - "AUSP"    
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["OBJEK_TGT", "ATINN_TGT", "ATZHL_TGT", "MAFID_TGT", "KLART_TGT", "ADZHL_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "KLART_TGT"
+        allowed_values:
+          - "002"
+          - "003"
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES: 
+      - kds_sheet: "THMM_CHAR"
+        kds_columns:
+          - "ATNAM_TGT"
+        source_columns:
+          - "ZATNAM_TGT"
+          
+      - kds_sheet: "THMM_CHAR"
+        kds_columns:
+          - "ZATNAM_TGT"
+          - "ATWRT_TGT"
+        source_columns:
+          - "ZATNAM_TGT"
+          - "ATWRT_TGT"
+      
+      - kds_sheet: "THMM_FLOC_EQ"
+        kds_columns:
+          - "OBJEK_TGT"
+          - "KLART_TGT"
+        source_columns:
+          - "OBJEK_TGT"
+          - "KLART_TGT"
+
+
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

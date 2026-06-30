@@ -18,8 +18,3 @@ if __name__ == "__main__":
     config_path = os.path.join(_MODULE_DIR, "Config-MY.yaml")
     run_validation(config_path)
     
-    # config_path = os.path.join(_MODULE_DIR, "Config-DCT-MY.yaml")
-    # run_validation(config_path)
-    
-    # config_path = os.path.join(_MODULE_DIR, "Config-DCT-TH.yaml")
-    # run_validation(config_path)

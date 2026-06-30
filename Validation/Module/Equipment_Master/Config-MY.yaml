@@ -1,0 +1,490 @@
+MODULE: "Equipment Master"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Equipment_Master/MC2_MNT-PM-M008_Equipment_Master_MY_Preload_V1.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "Equipment Master"
+MAPPING_PATH:         "Metadata/Mapping/KDS_FLOC_EQ.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M008_Equipment_Master_MY_Preload_V1 Data Cleansing.xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
+JOBS:
+  - NAME:           "Equipment Master Data (MY)"
+    SHEET_KEYWORD:  "Equipment Master Data (MY)"
+    DS_TABLE:       
+      - "EQUI"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["EQUNR_TGT"]
+
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES:
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "EQART_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "EQART_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "EQTYP_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "EQTYP_TGT"
+
+    KDS_PROHIBITED_REFERENCES: []
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "DCT201-EQ"
+        kds_field_name: "EQUNR_DCT"       
+        source_column:  "EQUNR_TGT"  
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:           "Equipment Short Text (MY)"
+    SHEET_KEYWORD:  "Equipment Short Text (MY)"
+    DS_TABLE:       
+      - "EQKT"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["EQUNR_TGT", "SPRAS_TGT"]
+
+    FIXED_VALUE_FIELDS: []
+
+    PROHIBITED_NEWLINE_FIELDS:
+      - "EQKTX_TGT"
+
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["EQUNR_TGT"]
+        target_sheet_keyword: "Equipment Master Data (MY)"
+        target_columns:       ["EQUNR_TGT"]
+
+    KDS_REFERENCES:
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "EQKTX_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "EQKTX_TGT"
+
+    KDS_PROHIBITED_REFERENCES: []
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "DCT201-EQ"
+        kds_field_name: "EQUNR_DCT"       
+        source_column:  "EQUNR_TGT"  
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:         "Equipment Time Seg. (MY)"
+    SHEET_KEYWORD:  "Equipment Time Seg. (MY)"
+    DS_TABLE:       
+      - "EQUZ"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["EQUNR_TGT", "DATBI_TGT", "EQLFN_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "EQFNRI_TGT"
+        allowed_values:
+          - "99991231"
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["EQUNR_TGT"]
+        target_sheet_keyword: "Equipment Master Data (MY)"
+        target_columns:       ["EQUNR_TGT"]
+
+
+      # - source_columns:       ["ILOAN_TGT"]
+      #   target_sheet_keyword: "PM Obj. & Acc. Assign. (TH)"
+      #   target_columns:       ["ILOAN_TGT"]
+
+    KDS_REFERENCES:
+      # TPLNR_TGT and HEQUI_TGT
+      # เช็คมือถ้า EQ ตัวนั้นใน DCT201 มี Parent เป็น FQ ให้เอา Parent FL มาใส่ใน TPLNR เเต่ถ้าเป็น EQ จะเอา Parent EQ มาใส่ใน EQUZ
+      # - kds_sheet: "DCT205"
+      #   kds_columns:
+      #     - "TPLNR"
+      #   source_columns:
+      #     - "TPLNR_TGT"
+
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "RBNR_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "RBNR_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "INGRP_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "INGRP_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "IWERK_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "IWERK_TGT"
+
+
+    KDS_PROHIBITED_REFERENCES: []
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "DCT201-EQ"
+        kds_field_name: "EQUNR_DCT"       
+        source_column:  "EQUNR_TGT"     
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:         "PM Obj. & Acc. Assign. (MY)"
+    SHEET_KEYWORD:  "PM Obj. & Acc. Assign. (MY)"
+    DS_TABLE:       
+      - "ILOA"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["ILOAN_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "ABCKZI_TGT"
+        allowed_values:
+          - "D"
+
+      - column: "BUKRSI_TGT"
+        allowed_values:
+          - "H"  
+      
+      - column: "KOKRSI_TGT"
+        allowed_values:
+          - "H"
+      
+      - column: "KOSTLI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "STORTI_TGT"
+        allowed_values:
+          - "H"
+      
+      - column: "SWERKI_TGT"
+        allowed_values:
+          - "H"
+      
+      - column: "BEBERI_TGT"
+        allowed_values:
+          - "H"
+      
+      - column: "MSGRPI_TGT"
+        allowed_values:
+          - "D"
+      
+      - column: "EQFNRI_TGT"
+        allowed_values:
+          - "H"
+      
+      - column: "PROIDI_TGT"
+        allowed_values:
+          - "D"
+
+      # User got case that FL and EQ will use KOSTL instate of WBS 
+      # - column: "KOSTL_TGT"
+      #   allowed_values:
+      #     - ""
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["EQUNR_TGT"]
+        target_sheet_keyword: "Equipment Master Data (MY)"
+        target_columns:       ["EQUNR_TGT"]
+
+      - source_columns:       ["EQFNR_TGT"]
+        target_sheet_keyword: "Equipment Master Data (MY)"
+        target_columns:       ["EQUNR_TGT"]
+
+    KDS_REFERENCES:
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "PROID_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "PROID_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "MSGRP_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "MSGRP_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "BEBER_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "BEBER_TGT"
+      
+      # TPLNR_TGT and HEQUI_TGT
+      # เช็คมือถ้า EQ ตัวนั้นใน DCT201 มี Parent เป็น FQ ให้เอา Parent FL มาใส่ใน TPLNR เเต่ถ้าเป็น EQ จะเอา Parent EQ มาใส่ใน EQUZ
+      # - kds_sheet: "DCT205"
+      #   kds_columns:
+      #     - "TPLNR"
+      #   source_columns:
+      #     - "TPLNR_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "STORT_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "STORT_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "SWERK_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "SWERK_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "ABCKZ_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "ABCKZ_TGT"
+      
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "KOSTL_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "KOSTL_TGT"
+
+    KDS_PROHIBITED_REFERENCES:
+      - kds_sheet: "Unassignable_FL"
+        kds_columns: ["TPLNR_TGT_MY"]
+        source_columns: ["TPLNR_TGT"]
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "DCT201-EQ"
+        kds_field_name: "EQUNR_DCT"       
+        source_column:  "EQUNR_TGT"   
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:         "Individual Object Status (MY)"
+    SHEET_KEYWORD:  "Individual Object Status (MY)"
+    DS_TABLE:       
+      - "JEST"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["EQUNR_TGT", "STAT_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      - column: "INACT_TGT"
+        allowed_values:
+          - ""
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["EQUNR_TGT"]
+        target_sheet_keyword: "Equipment Master Data (MY)"
+        target_columns:       ["EQUNR_TGT"]
+
+    KDS_REFERENCES:
+      - kds_sheet: "DCT204"
+        kds_columns:
+          - "EQUNR_TGT"
+          - "STAT_TGT"
+        source_columns:
+          - "EQUNR_TGT"
+          - "TXT04_SRC"
+
+    KDS_PROHIBITED_REFERENCES: []
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "DCT201-EQ"
+        kds_field_name: "EQUNR_DCT"       
+        source_column:  "EQUNR_TGT"     
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  # - NAME:         "Equipment Long Text (MY)"
+  #   SHEET_KEYWORD:  "Equipment Long Text (MY)"
+  #   DS_TABLE:       
+  #     - "STXH"
+  #     - "STXL"               
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:
+  #     - ["EQUNR"]
+
+  #   FIXED_VALUE_FIELDS:
+  #   PROHIBITED_NEWLINE_FIELDS: []
+  #   NON_BLANK_OPTIONAL_FIELDS: []
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES: []   
+
+  #   CROSS_SHEET_REFERENCES:
+  #     - source_columns:       ["EQUNR"]
+  #       target_sheet_keyword: "Equipment Master Data (MY)"
+  #       target_columns:       ["EQUNR_TGT"]
+
+  #   KDS_REFERENCES: []
+  #   KDS_PROHIBITED_REFERENCES: []
+  #   KDS_COMPLETENESS_REFERENCES: []
+  #   START_WITH_FIELDS: []
+  #   CUSTOM_VALIDATIONS: []

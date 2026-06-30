@@ -12,11 +12,11 @@ sys.path.insert(0, os.path.join(_PROJECT_ROOT, "src"))
 from main import run_validation
 
 if __name__ == "__main__":
-    # config_path = os.path.join(_MODULE_DIR, "Config-TH.yaml")
-    # run_validation(config_path)
-
-    config_path = os.path.join(_MODULE_DIR, "Config-MY.yaml")
+    config_path = os.path.join(_MODULE_DIR, "Config-TH.yaml")
     run_validation(config_path)
+
+    # config_path = os.path.join(_MODULE_DIR, "Config-MY.yaml")
+    # run_validation(config_path)
     
     # config_path = os.path.join(_MODULE_DIR, "Config-DCT-MY.yaml")
     # run_validation(config_path)

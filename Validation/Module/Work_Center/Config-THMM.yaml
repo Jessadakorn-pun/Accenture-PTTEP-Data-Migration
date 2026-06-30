@@ -1,12 +1,12 @@
 MODULE: "Work Center THMM"
 
 # ─── File locations (relative to project root) ──────────────────────────────
-TEMPLATE_PATH:        "Module/Work_Center/MC2_MNT-PM-M005_PM Work Center_THMM_Preload_V2.xlsx" 
+TEMPLATE_PATH:        "Module/Work_Center/MC2_MNT-PM-M005_PM Work Center_THMM_Preload Check_V1.xlsx" 
 DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
 DATA_STANDARD_SHEET:  "Work Center"                          
-MAPPING_PATH:         "Metadata/Mapping/KDS_ALL_MAPPING.xlsx"
+MAPPING_PATH:         "Metadata/Mapping/KDS_Work_Center.xlsx"
 OUTPUT_PATH:          "Output"
-OUTPUT_FILE_NAME:     "MC2_MNT-PM-M005_PM Work Center_THMM_Preload_V2 Data Cleansing.xlsx"                      
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M005_PM Work Center_THMM_Preload_V1 Preload Check.xlsx"                      
 
 # ─── Ignore configuration ────────────────────────────────────────────────────
 CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
@@ -160,6 +160,7 @@ JOBS:
             - "FORT1_SRC"
           template_src_columns:      
             - "FORT3_SRC"
+
       # Formula for the duration of other types of int. processing
       - kds_sheet: "THMM_TC25"
         kds_columns:
@@ -379,6 +380,7 @@ JOBS:
             - WERKS_TGT
             - ARBPL_TGT
           check_columns:
+            - ARBPL_TGT
             - VERWE_TGT
             - VERAN_TGT
             - PLANV_TGT
@@ -542,7 +544,20 @@ JOBS:
     PRIMARY_KEYS:                  
       - ["WERKS", "ARBPL", "LASET_TGT", "ENDDA_TGT", "LANUM_TGT"]
 
-    FIXED_VALUE_FIELDS:     [] 
+    FIXED_VALUE_FIELDS:
+      # DCFS Update: LSTAR maintain as blank
+      - column: "LSTAR_TGT"
+        allowed_values:
+          - ""
+      
+      # DCFS Upadet : User ให้ KOSTL ของ Plant 1001
+      - column: "KOSTL_TGT"
+        allowed_values:
+          - "C001X10001"
+        condition:
+          column: "WERKS"
+          values: ["1001"]
+
     PROHIBITED_NEWLINE_FIELDS:     [] 
     NON_BLANK_OPTIONAL_FIELDS:     [] 
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
@@ -579,28 +594,20 @@ JOBS:
           template_src_columns:      
             - "KOSTL_SRC"
       
-      # THMM - Activity Type
-      - kds_sheet: "THMM_ActType"
-        kds_columns:
-          - "LSTAR_TGT"
-        source_columns:
-          - "LSTAR_TGT"
-        check_mapping:
-          kds_src_columns:         
-            - "LSTAR_SRC"
-          template_src_columns:      
-            - "LSTAR_SRC"
+      # # THMM - Activity Type
+      # - kds_sheet: "THMM_ActType"
+      #   kds_columns:
+      #     - "LSTAR_TGT"
+      #   source_columns:
+      #     - "LSTAR_TGT"
+      #   check_mapping:
+      #     kds_src_columns:         
+      #       - "LSTAR_SRC"
+      #     template_src_columns:      
+      #       - "LSTAR_SRC"
 
     KDS_PROHIBITED_REFERENCES:     [] 
-
-    # START_WITH_FIELDS:
-    #   # For Plant 1001 (Arti Plant) cost center have to start with "P"
-    #   - column: "KOSTL_TGT"
-    #     prefix:
-    #       - "P"
-    #     condition:
-    #       column: "WERKS"
-    #       values: ["1001"]
+    START_WITH_FIELDS: []
 
     CUSTOM_VALIDATIONS:
       # Check BEGDA ENDDA format YYYYMMDD
@@ -630,7 +637,20 @@ JOBS:
     PRIMARY_KEYS:                  
       - ["WERKS", "ARBPL", "LASET_TGT", "ENDDA_TGT", "LANUM_TGT"]
 
-    FIXED_VALUE_FIELDS:     [] 
+    FIXED_VALUE_FIELDS:
+      # DCFS Upadet : User ให้ KOSTL ของ Plant 1001
+      - column: "KOSTL_TGT"
+        allowed_values:
+          - "C001X10001"
+        condition:
+          column: "WERKS"
+          values: ["1001"]
+
+      # DCFS Update: LSTAR maintain as blank
+      - column: "LSTAR_TGT"
+        allowed_values:
+          - ""
+
     PROHIBITED_NEWLINE_FIELDS:     [] 
     NON_BLANK_OPTIONAL_FIELDS:     [] 
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
@@ -667,28 +687,9 @@ JOBS:
           template_src_columns:      
             - "KOSTL_SRC"
       
-      # THMM - Activity Type
-      - kds_sheet: "THMM_ActType"
-        kds_columns:
-          - "LSTAR_TGT"
-        source_columns:
-          - "LSTAR_TGT"
-        check_mapping:
-          kds_src_columns:         
-            - "LSTAR_SRC"
-          template_src_columns:      
-            - "LSTAR_SRC"
 
     KDS_PROHIBITED_REFERENCES:     [] 
-
-    START_WITH_FIELDS:
-      # For Plant 1001 (Arti Plant) cost center have to start with "P"
-      - column: "KOSTL_TGT"
-        prefix:
-          - "P"
-        condition:
-          column: "WERKS"
-          values: ["1001"]
+    START_WITH_FIELDS: []
 
     CUSTOM_VALIDATIONS:
       # Check BEGDA ENDDA format YYYYMMDD
@@ -710,11 +711,11 @@ JOBS:
             - ZLEGACYLANUM
             - ARBPL
           check_columns:
-            - OBJTY_TGT
-            - OBJID_TGT
+            # - OBJTY_TGT
+            # - OBJID_TGT
             - ENDDA_TGT
             - BEGDA_TGT
-            - KOSTL_TGT
+            # - KOSTL_TGT # DCFS Upadet : User ให้ KOSTL ของ Plant 1013
             # - LSTAR_TGT # ไม่มีใน template เเต่มีใน DCFS
             # - LASET_TGT # ไม่มีใน template เเต่มีใน DCFS
             - FORML_TGT

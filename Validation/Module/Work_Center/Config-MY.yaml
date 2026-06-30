@@ -1,12 +1,12 @@
 MODULE: "Work Center MY"
 
 # ─── File locations (relative to project root) ──────────────────────────────
-TEMPLATE_PATH:        "Module/Work_Center/MC1_MNT-PM-M005_PM Work Center_MY_Preload_V2.xlsx" 
+TEMPLATE_PATH:        "Module/Work_Center/MC2_MNT-PM-M005_PM Work Center_MY_Preload_V1.xlsx" 
 DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
 DATA_STANDARD_SHEET:  "Work Center"                          
-MAPPING_PATH:         "Metadata/Mapping/KDS_ALL_MAPPING.xlsx"
+MAPPING_PATH:         "Metadata/Mapping/KDS_Work_Center.xlsx"
 OUTPUT_PATH:          "Output"
-OUTPUT_FILE_NAME:     "MC1_MNT-PM-M005_PM Work Center_MY_Preload_V2 Data Cleansing.xlsx"                      
+OUTPUT_FILE_NAME:     "MC2_MNT-PM-M005_PM Work Center_MY_Preload_V1 Data Cleansing.xlsx"                      
 
 # ─── Ignore configuration ────────────────────────────────────────────────────
 CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
@@ -22,7 +22,7 @@ IGNORE_COLUMN_SUFFIXES:
 # ─── Jobs (one per worksheet) ────────────────────────────────────────────────
 JOBS:
   - NAME:          "1. Work Center Header"                 
-    SHEET_KEYWORD: "PMWORKCENTER_CRHD_T_RPT_TH"             
+    SHEET_KEYWORD: "PMWORKCENTER_CRHD_T_RPT_MY"             
     DS_TABLE:
       - "CRHD" 
 
@@ -34,42 +34,15 @@ JOBS:
       - ["OBJTY_TGT", "OBJID_TGT", "WERKS_TGT", "ARBPL_TGT"]
 
     FIXED_VALUE_FIELDS:
-      # Only include active plants listed in the 'RR_TH_Active Plants' tab 
-      #(refer to the PM Work Center Data Standard)
-      - column: "WERKS_SRC"
-        allowed_values:
-          - "1201"
-          - "1202"
-          - "1602"
-          - "1603"
-          - "1604"
-          - "1605"
-          - "2101"
-          - "2301"
-          - "2801"
-          - "4101"
-          - "5101"
-          - "5301"
-          - "5302"
-          - "5303"
-          - "8401"
-          - "MY01"
-          - "MY02"
-          - "MY05"
-          - "MY06"
-          - "MY07"
-          - "2901"
-          - "1401"
-
-      # MY - Person Responsible for the Work Cente - Default ""
-      - column: "VERAN_TGT"
-        allowed_values:
-          - ""
-      
       # Control Key (STEUS) Default: PM01
       - column: "STEUS_TGT"
         allowed_values:
           - "PM01"
+      
+      # MY VERAN maintain as blank
+      - column: "VERAN_TGT"
+        allowed_values:
+          - ""
 
     PROHIBITED_NEWLINE_FIELDS:     [] 
 
@@ -165,6 +138,7 @@ JOBS:
             - "FORT1_SRC"
           template_src_columns:      
             - "FORT3_SRC"
+
       # Formula for the duration of other types of int. processing
       - kds_sheet: "MY_TC25"
         kds_columns:
@@ -177,17 +151,13 @@ JOBS:
           template_src_columns:      
             - "FORTN_SRC"
 
-    
-    KDS_PROHIBITED_REFERENCES:
-      # Exclude work centers listed in the 'RR_TH_Deleted WC' tab (refer to the PM Work Center Data Standard), 
-      # using the Plant and Work Center combination as the reference key
-      - kds_sheet: "MY_WERK_ARBPL_EXC"
-        kds_columns:
-          - "WERKS_SRC"
-          - "ARBPL_SRC"
-        source_columns:
-          - "WERKS_SRC"
-          - "ARBPL_SRC"
+    KDS_PROHIBITED_REFERENCES: []
+
+    KDS_COMPLETENESS_REFERENCES:
+      # DCT Completeness
+      - kds_sheet:      "MY_DCT"
+        kds_field_name: "ARBPL"       
+        source_column:  "ARBPL_TGT"
 
     CUSTOM_VALIDATIONS:
       # Check BEGDA date format YYYYMMDD
@@ -197,9 +167,212 @@ JOBS:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+  # - NAME:          "1.1 Work Center Header - 1001"                 
+  #   SHEET_KEYWORD: "CRHD_1001"             
+  #   DS_TABLE:
+  #     - "CRHD" 
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:                  
+  #     - ["OBJTY_TGT", "OBJID_TGT", "WERKS_TGT", "ARBPL_TGT"]
+
+  #   FIXED_VALUE_FIELDS:
+  #     # Control Key (STEUS) Default: PM01
+  #     - column: "STEUS_TGT"
+  #       allowed_values:
+  #         - "PM01"
+        
+  #     # MY VERAN maintain as blank
+  #     - column: "VERAN_TGT"
+  #       allowed_values:
+  #         - ""
+
+  #   PROHIBITED_NEWLINE_FIELDS:     [] 
+
+  #   NON_BLANK_OPTIONAL_FIELDS:
+  #     # Check Nonbalnk for Work Center column
+  #     - "ARBPL_TGT"
+
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
+  #   CROSS_SHEET_REFERENCES:        []
+
+  #   KDS_REFERENCES:
+  #     # Plant
+  #     - kds_sheet: "MY_T001W"
+  #       kds_columns:
+  #         - "WERKS_TGT"
+  #       source_columns:
+  #         - "WERKS_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "WERKS_SRC"
+  #         template_src_columns:      
+  #           - "WERKS_SRC"
+
+  #     # Work Center Category
+  #     - kds_sheet: "MY_TC30"
+  #       kds_columns:
+  #         - "VERWE_TGT"
+  #       source_columns:
+  #         - "VERWE_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "VERWE_SRC"
+  #         template_src_columns:      
+  #           - "VERWE_SRC"
+
+  #     # Formula for set up time
+  #     - kds_sheet: "MY_TC23"
+  #       kds_columns:
+  #         - "PLANV_TGT"
+  #       source_columns:
+  #         - "PLANV_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "PLANV_SRC"
+  #         template_src_columns:      
+  #           - "PLANV_SRC"
+      
+  #     # Standard Value Key
+  #     - kds_sheet: "MY_TC21"
+  #       kds_columns:
+  #         - "VGWTS_TGT"
+  #       source_columns:
+  #         - "VGWTS_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "VGWTS_SRC"
+  #         template_src_columns:      
+  #           - "VGWTS_SRC"
+
+  #      # Formula for setup time
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORT1_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORT1_SRC"
+      
+  #     # Formula for the duration of processing time
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORT2_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORT2_SRC"
+
+  #     # Formula for teardown time
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORT3_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORT3_SRC"
+  #     # Formula for the duration of other types of int. processing
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORTN_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORTN_SRC"
+
+  #   KDS_PROHIBITED_REFERENCES: []
+
+  #   CUSTOM_VALIDATIONS:
+  #      # Check BEGDA date format YYYYMMDD
+  #     - check_ad_date:
+  #       - BEGDA_TGT  
+
+  #     - check_group_consistency:
+  #       - group_by:
+  #           - WERKS_TGT
+  #           - ARBPL_TGT
+  #         sort_by:
+  #           - WERKS_TGT
+  #           - ARBPL_TGT
+  #         check_columns:
+  #           - ARBPL_TGT
+  #           - VERWE_TGT
+  #           - VERAN_TGT
+  #           - PLANV_TGT
+  #           - VGWTS_TGT
+  #           - STEUS_TGT
+  #           - FORTN_TGT
+  #           - FORT1_TGT
+
+  #           # - STAND_TGT
+  #           # - SUBSYS_TGT
+  #           # - PRVBE_TGT
+  #           # - RGEKZ_TGT
+  #           # - STEUS_REF_TGT
+  #           # - KTSCH_TGT
+  #           # - KTSCH_REF_TGT
+  #           # - RASCH_TGT
+  #           # - RASCH_REF_TGT
+  #           # - LOART_TGT
+  #           # - LOART_REF_TGT
+  #           # - LOANZ_TGT
+  #           # - LOANZ_REF_TGT
+  #           # - RSANZ_TGT
+  #           # - RSANZ_REF_TGT
+  #           # - FORT2_TGT
+  #           # - FORT3_TGT
+  #           # - ORTGR_TGT
+  #           # - ZWNOR_TGT
+  #           # - ZEIWN_TGT
+  #           # - ZWMIN_TGT
+  #           # - ZEIWM_TGT
+  #           # - VGDIM_TGT
+  #           # - VGARB_TGT
+
+  #         condition:
+  #           column: "WERKS_TGT"
+  #           values: ["1001", "1014"]  
+
+
+
+
+
+
+
+
+
+
+
   
   - NAME:          "2. Text for the Work Center or Production Resource/Tool"                 
-    SHEET_KEYWORD: "PMWORKCENTER_CRTX_T_RPT_TH"             
+    SHEET_KEYWORD: "PMWORKCENTER_CRTX_T_RPT_MY"             
     DS_TABLE:
       - "CRTX"
 
@@ -223,7 +396,7 @@ JOBS:
     CROSS_SHEET_REFERENCES:
       # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
       - source_columns:       ["WERKS", "ARBPL"]
-        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_TH"
+        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
         target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
 
     KDS_REFERENCES:     [] 
@@ -234,9 +407,75 @@ JOBS:
 
 
 
+
+
+
+
+
+
+
+
+  # - NAME:          "2.2 Text for the Work Center or Production Resource/Tool - 1001"                 
+  #   SHEET_KEYWORD: "CRTX_1001"             
+  #   DS_TABLE:
+  #     - "CRTX"
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:                  
+  #     - ["WERKS", "ARBPL", "SPRAS_TGT"]
+
+  #   FIXED_VALUE_FIELDS:     [] 
+
+  #   PROHIBITED_NEWLINE_FIELDS:
+  #     # Check no leading newline in text field
+  #     - "KTEXT_TGT"
+
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
+
+  #   CROSS_SHEET_REFERENCES:
+  #     # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
+  #       target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
+
+  #   KDS_REFERENCES:     [] 
+  #   KDS_PROHIBITED_REFERENCES:     [] 
+  #   CUSTOM_VALIDATIONS:
+  #     - check_group_consistency:
+  #       - group_by:
+  #           - WERKS
+  #           - ARBPL
+  #         sort_by:
+  #           - WERKS
+  #           - ARBPL
+  #         check_columns:
+  #           - KTEXT_TGT
+
+  #           # - OBJTY_TGT
+  #           # - OBJID_TGT
+  #           # - SPRAS_TGT
+
+  #         condition:
+  #           column: "WERKS"
+  #           values: ["1001", "1014"]  
   
+
+
+  
+
+
+
+
+
+
+
   - NAME:          "3. Assignment of Work Center to Cost Center"                 
-    SHEET_KEYWORD: "PMWORKCENTER_CRCO_T_RPT_TH"             
+    SHEET_KEYWORD: "PMWORKCENTER_CRCO_T_RPT_MY"             
     DS_TABLE:
       - "CRCO"
 
@@ -247,7 +486,7 @@ JOBS:
     PRIMARY_KEYS:                  
       - ["WERKS", "ARBPL", "LASET_TGT", "ENDDA_TGT", "LANUM_TGT"]
 
-    FIXED_VALUE_FIELDS:     [] 
+    FIXED_VALUE_FIELDS: []
     PROHIBITED_NEWLINE_FIELDS:     [] 
     NON_BLANK_OPTIONAL_FIELDS:     [] 
     NON_BLANK_OPTIONAL_ANY_FIELDS: []
@@ -256,7 +495,7 @@ JOBS:
     CROSS_SHEET_REFERENCES: 
       # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
       - source_columns:       ["WERKS", "ARBPL"]
-        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_TH"
+        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
         target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
         
     KDS_REFERENCES:
@@ -285,7 +524,7 @@ JOBS:
             - "KOSTL_SRC"
       
       # MY - Activity Type
-      - kds_sheet: "MY_KOSTL"
+      - kds_sheet: "MY_LSTAR"
         kds_columns:
           - "LSTAR_TGT"
         source_columns:
@@ -295,18 +534,9 @@ JOBS:
             - "LSTAR_SRC"
           template_src_columns:      
             - "LSTAR_SRC"
-    
 
     KDS_PROHIBITED_REFERENCES:     [] 
-
-    # START_WITH_FIELDS:
-    #   # For Plant 1001 (Arti Plant) cost center have to start with "P"
-    #   - column: "KOSTL_TGT"
-    #     prefix:
-    #       - "P"
-    #     condition:
-    #       column: "WERKS"
-    #       values: ["1001"]
+    START_WITH_FIELDS: []
 
     CUSTOM_VALIDATIONS:
       # Check BEGDA ENDDA format YYYYMMDD
@@ -317,87 +547,309 @@ JOBS:
       - check_between_time:
         - start_date: "BEGDA_TGT"
           end_date:   "ENDDA_TGT"
+  
+
+
+
+
+
+
+  # - NAME:          "3. Assignment of Work Center to Cost Center - 1001"                 
+  #   SHEET_KEYWORD: "CRCO_1001"             
+  #   DS_TABLE:
+  #     - "CRCO"
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:                  
+  #     - ["WERKS", "ARBPL", "LASET_TGT", "ENDDA_TGT", "LANUM_TGT"]
+
+  #   FIXED_VALUE_FIELDS:
+  #     # DCFS Upadet : User ให้ KOSTL ของ Plant 1001
+  #     - column: "KOSTL_TGT"
+  #       allowed_values:
+  #         - "C001X10001"
+  #       condition:
+  #         column: "WERKS"
+  #         values: ["1001"]
+
+
+  #   PROHIBITED_NEWLINE_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
+
+  #   CROSS_SHEET_REFERENCES: 
+  #     # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
+  #       target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
+        
+  #   KDS_REFERENCES:
+  #     # Formula key for costing
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORML_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORML_SRC"
+
+  #     # Cost Center
+  #     - kds_sheet: "MY_KOSTL"
+  #       kds_columns:
+  #         - "KOSTL_TGT"
+  #       source_columns:
+  #         - "KOSTL_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "KOSTL_SRC"
+  #         template_src_columns:      
+  #           - "KOSTL_SRC"
+      
+  #     # MY - Activity Type
+  #     - kds_sheet: "MY_LSTAR"
+  #       kds_columns:
+  #         - "LSTAR_TGT"
+  #       source_columns:
+  #         - "LSTAR_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "LSTAR_SRC"
+  #         template_src_columns:      
+  #           - "LSTAR_SRC"
+
+
+  #   KDS_PROHIBITED_REFERENCES:     [] 
+  #   START_WITH_FIELDS: []
+
+  #   CUSTOM_VALIDATIONS:
+  #     # Check BEGDA ENDDA format YYYYMMDD
+  #     - check_ad_date:
+  #         - "BEGDA_TGT"     
+  #         - "ENDDA_TGT"
+  #     # Check valid start / end date
+  #     - check_between_time:
+  #       - start_date: "BEGDA_TGT"
+  #         end_date:   "ENDDA_TGT"
+
+  #     - check_group_consistency:
+  #       - group_by:
+  #           - WERKS
+  #           - ZLEGACYLANUM
+  #           - ARBPL
+  #         sort_by:
+  #           - WERKS
+  #           - ZLEGACYLANUM
+  #           - ARBPL
+  #         check_columns:
+  #           # - OBJTY_TGT
+  #           # - OBJID_TGT
+  #           - ENDDA_TGT
+  #           - BEGDA_TGT
+  #           # - KOSTL_TGT # DCFS Upadet : User ให้ KOSTL ของ Plant 1013
+  #           # - LSTAR_TGT # ไม่มีใน template เเต่มีใน DCFS
+  #           # - LASET_TGT # ไม่มีใน template เเต่มีใน DCFS
+  #           - FORML_TGT
+  #         condition:
+  #           column: "WERKS"
+  #           values: ["1001", "1014"]  
+  
+
+ 
 
 
 
 
 
   
-  - NAME:          "4. Work Center Capacity Allocation"                 
-    SHEET_KEYWORD: "PMWORKCENTER_CRCA_T_RPT_TH"             
-    DS_TABLE:
-      - "CRCA"
+  # - NAME:          "4. Work Center Capacity Allocation"                 
+  #   SHEET_KEYWORD: "PMWORKCENTER_CRCA_T_RPT_MY"             
+  #   DS_TABLE:
+  #     - "CRCA"
 
-    VALIDATIONS:
-      - mandatory
-      - length
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
 
-    PRIMARY_KEYS:                  
-      - ["WERKS", "ARBPL"] 
+  #   PRIMARY_KEYS:                  
+  #     - ["WERKS", "ARBPL"] 
 
-    FIXED_VALUE_FIELDS:     [] 
-    PROHIBITED_NEWLINE_FIELDS:     [] 
-    NON_BLANK_OPTIONAL_FIELDS:     [] 
-    NON_BLANK_OPTIONAL_ANY_FIELDS: []
-    SAME_SHEET_REFERENCES:         []
+  #   FIXED_VALUE_FIELDS:     [] 
+  #   PROHIBITED_NEWLINE_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
 
-    CROSS_SHEET_REFERENCES: 
-      # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
-      - source_columns:       ["WERKS", "ARBPL"]
-        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_TH"
-        target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
+  #   CROSS_SHEET_REFERENCES: 
+  #     # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
+  #       target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
 
-    KDS_REFERENCES:
-      # Formula for Setup Capacity Requirements
-      - kds_sheet: "MY_TC25"
-        kds_columns:
-          - "FORT1_TGT"
-        source_columns:
-          - "FORK1_TGT"
-        check_mapping:
-          kds_src_columns:         
-            - "FORT1_SRC"
-          template_src_columns:      
-            - "FORK1_SRC"
+  #   KDS_REFERENCES:
+  #     # Formula for Setup Capacity Requirements
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORK1_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORK1_SRC"
       
-      # Formula for Processing Capacity Requirements
-      - kds_sheet: "MY_TC25"
-        kds_columns:
-          - "FORT1_TGT"
-        source_columns:
-          - "FORK2_TGT"
-        check_mapping:
-          kds_src_columns:         
-            - "FORT1_SRC"
-          template_src_columns:      
-            - "FORK2_SRC"
+  #     # Formula for Processing Capacity Requirements
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORK2_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORK2_SRC"
 
-      # Formula for Teardown Capacity Requirements
-      - kds_sheet: "MY_TC25"
-        kds_columns:
-          - "FORT1_TGT"
-        source_columns:
-          - "FORK3_TGT"
-        check_mapping:
-          kds_src_columns:         
-            - "FORT1_SRC"
-          template_src_columns:      
-            - "FORK3_SRC"
+  #     # Formula for Teardown Capacity Requirements
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORK3_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORK3_SRC"
 
-      # Formula for Other Capacity Requirements
-      - kds_sheet: "MY_TC25"
-        kds_columns:
-          - "FORT1_TGT"
-        source_columns:
-          - "FORKN_TGT"
-        check_mapping:
-          kds_src_columns:         
-            - "FORT1_SRC"
-          template_src_columns:      
-            - "FORKN_SRC"
+  #     # Formula for Other Capacity Requirements
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORKN_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORKN_SRC"
 
-    KDS_PROHIBITED_REFERENCES:     [] 
-    CUSTOM_VALIDATIONS:     [] 
+  #   KDS_PROHIBITED_REFERENCES:     [] 
+  #   CUSTOM_VALIDATIONS:     [] 
+
+
+
+
+
+  # - NAME:          "4. Work Center Capacity Allocation - 1001"                 
+  #   SHEET_KEYWORD: "CRCA_1001"             
+  #   DS_TABLE:
+  #     - "CRCA"
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:                  
+  #     - ["WERKS", "ARBPL"] 
+
+  #   FIXED_VALUE_FIELDS:     [] 
+  #   PROHIBITED_NEWLINE_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
+
+  #   CROSS_SHEET_REFERENCES: 
+  #     # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
+  #       target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
+
+  #   KDS_REFERENCES:
+  #     # Formula for Setup Capacity Requirements
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORK1_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORK1_SRC"
+      
+  #     # Formula for Processing Capacity Requirements
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORK2_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORK2_SRC"
+
+  #     # Formula for Teardown Capacity Requirements
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORK3_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORK3_SRC"
+
+  #     # Formula for Other Capacity Requirements
+  #     - kds_sheet: "MY_TC25"
+  #       kds_columns:
+  #         - "FORT1_TGT"
+  #       source_columns:
+  #         - "FORKN_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "FORT1_SRC"
+  #         template_src_columns:      
+  #           - "FORKN_SRC"
+
+  #   KDS_PROHIBITED_REFERENCES:     [] 
+  #   CUSTOM_VALIDATIONS:
+  #     - check_group_consistency:
+  #       - group_by:
+  #           - WERKS
+  #           - ARBPL
+  #         sort_by:
+  #           - WERKS
+  #           - ARBPL
+  #         check_columns:
+  #           - FORK1_TGT
+  #           # - FORKN_TGT
+
+  #           # - KTEXT # ไม่มีใน template มีใน DCFS
+  #           # - FORTN # ไม่มีใน template มีใน DCFS
+  #           # - OBJTY_TGT
+  #           # - OBJID_TGT
+  #           # - CANUM_TGT
+  #           # - CAP_BACKFLUSH_SU_TGT
+  #           # - FORK2_TGT
+  #           # - CAP_BACKFLUSH_PR_TGT
+  #           # - FORK3_TGT
+  #           # - CAP_BACKFLUSH_TD_TGT
+  #           # - VERT1_TGT
+  #           # - VERTN_TGT
+
+  #         condition:
+  #           column: "WERKS"
+  #           values: ["1001", "1014"]  
   
 
 
@@ -405,7 +857,7 @@ JOBS:
 
 
   - NAME:          "5. Capacity Header Segment"                 
-    SHEET_KEYWORD: "PMWORKCENTER_KAKO_T_RPT_TH"             
+    SHEET_KEYWORD: "PMWORKCENTER_KAKO_T_RPT_MY"             
     DS_TABLE:
       - "KAKO"
 
@@ -421,11 +873,11 @@ JOBS:
       - column: "PLANR_TGT"
         allowed_values:
           - "PM"
-      
-      # MY - Default Capacity Utilization to “100” - dtype NUMC(3)
+
+      # Default Capacity Utilization to “100%”.
       - column: "NGRAD_TGT"
-        allowed_values:
-          - "100"
+        allowed_va"lues:
+          - "100
 
     PROHIBITED_NEWLINE_FIELDS:     [] 
     NON_BLANK_OPTIONAL_FIELDS:     [] 
@@ -435,7 +887,7 @@ JOBS:
     CROSS_SHEET_REFERENCES: 
       # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
       - source_columns:       ["WERKS", "ARBPL"]
-        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_TH"
+        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
         target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
 
     KDS_REFERENCES:
@@ -458,40 +910,159 @@ JOBS:
 
 
 
+
+
+  # - NAME:          "5. Capacity Header Segment - 1001"                 
+  #   SHEET_KEYWORD: "KAKO_1001"             
+  #   DS_TABLE:
+  #     - "KAKO"
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:                  
+  #     - ["WERKS", "ARBPL"] 
+
+  #   FIXED_VALUE_FIELDS:
+  #     # Capacity Responsible Planner Group - Default to PM 
+  #     - column: "PLANR_TGT"
+  #       allowed_values:
+  #         - "PM"
+
+  #   PROHIBITED_NEWLINE_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
+
+  #   CROSS_SHEET_REFERENCES: 
+  #     # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
+  #       target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
+
+  #   KDS_REFERENCES:
+  #     # Plant
+  #     - kds_sheet: "MY_T001W"
+  #       kds_columns:
+  #         - "WERKS_TGT"
+  #       source_columns:
+  #         - "WERKS_TGT"
+  #       check_mapping:
+  #         kds_src_columns:         
+  #           - "WERKS_SRC"
+  #         template_src_columns:      
+  #           - "WERKS_SRC"
+
+  #   KDS_PROHIBITED_REFERENCES:     [] 
+  #   CUSTOM_VALIDATIONS:
+  #     - check_group_consistency:
+  #       - group_by:
+  #           - WERKS
+  #           - ARBPL
+  #         sort_by:
+  #           - WERKS
+  #           - ARBPL
+  #         check_columns:
+  #           - KAPAR_TGT
+  #           - PLANR_TGT
+  #           # - KALID # system gen
+  #           - VERSA_TGT
+  #           - MEINS_TGT
+  #           - BEGZT_TGT
+  #           - ENDZT_TGT
+  #           - PAUSE_TGT
+  #           - NGRAD_TGT
+  #           - AZNOR_TGT
+  #           - KAPEH_TGT
+  #           - KAPLPL_TGT
+  #         condition:
+  #           column: "WERKS"
+  #           values: ["1001", "1014"]  
+
+
+
+
   
-  - NAME:          "6. Capacity Description"                 
-    SHEET_KEYWORD: "PMWORKCENTER_KAKT_T_RPT_TH"             
-    DS_TABLE:
-      - "KAKT"
+  # - NAME:          "6. Capacity Description"                 
+  #   SHEET_KEYWORD: "PMWORKCENTER_KAKT_T_RPT_MY"             
+  #   DS_TABLE:
+  #     - "KAKT"
 
-    VALIDATIONS:
-      - mandatory
-      - length
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
 
-    PRIMARY_KEYS:                  
-      - ["WERKS", "ARBPL", "SPRAS_TGT"]
+  #   PRIMARY_KEYS:                  
+  #     - ["WERKS", "ARBPL", "SPRAS_TGT"]
 
-    FIXED_VALUE_FIELDS: []
+  #   FIXED_VALUE_FIELDS: []
 
-    PROHIBITED_NEWLINE_FIELDS:
-      # Check no \n in the column
-      - "KTEXT_TGT"
+  #   PROHIBITED_NEWLINE_FIELDS:
+  #     # Check no \n in the column
+  #     - "KTEXT_TGT"
 
-    NON_BLANK_OPTIONAL_FIELDS:     [] 
-    NON_BLANK_OPTIONAL_ANY_FIELDS: []
-    SAME_SHEET_REFERENCES:         []
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
 
-    CROSS_SHEET_REFERENCES: 
-      # Check Parent-Child in Capacity Header Segment Sheet (Plant + Work Center)
-      - source_columns:       ["WERKS", "ARBPL"]
-        target_sheet_keyword: "PMWORKCENTER_KAKO_T_RPT_TH"
-        target_columns:       ["WERKS", "ARBPL"]
+  #   CROSS_SHEET_REFERENCES: 
+  #     # Check Parent-Child in Capacity Header Segment Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_KAKO_T_RPT_MY"
+  #       target_columns:       ["WERKS", "ARBPL"]
 
-    KDS_REFERENCES:     [] 
-    KDS_PROHIBITED_REFERENCES:     [] 
-    CUSTOM_VALIDATIONS:     [] 
+  #   KDS_REFERENCES:     [] 
+  #   KDS_PROHIBITED_REFERENCES:     [] 
+  #   CUSTOM_VALIDATIONS:     [] 
 
 
+
+
+  # - NAME:          "6. Capacity Description - 1001"                 
+  #   SHEET_KEYWORD: "KAKT_1001"             
+  #   DS_TABLE:
+  #     - "KAKT"
+
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
+
+  #   PRIMARY_KEYS:                  
+  #     - ["WERKS", "ARBPL", "SPRAS_TGT"]
+
+  #   FIXED_VALUE_FIELDS: []
+
+  #   PROHIBITED_NEWLINE_FIELDS:
+  #     # Check no \n in the column
+  #     - "KTEXT_TGT"
+
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
+
+  #   CROSS_SHEET_REFERENCES: 
+  #     # Check Parent-Child in Capacity Header Segment Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_KAKO_T_RPT_MY"
+  #       target_columns:       ["WERKS", "ARBPL"]
+
+  #   KDS_REFERENCES:     [] 
+  #   KDS_PROHIBITED_REFERENCES:     [] 
+  #   CUSTOM_VALIDATIONS:
+  #     - check_group_consistency:
+  #       - group_by:
+  #           - WERKS
+  #           - ARBPL
+  #         sort_by:
+  #           - WERKS
+  #           - ARBPL
+  #         check_columns:
+  #           - KTEXT_TGT
+    
+  #         condition:
+  #           column: "WERKS"
+  #           values: ["1001", "1014"]  
 
 
 
@@ -521,68 +1092,68 @@ JOBS:
 
 
 
-  - NAME:          "8. Interval of Available Capacity"                 
-    SHEET_KEYWORD: "PMWORKCENTER_KAZY_T_RPT_TH"             
-    DS_TABLE:
-      - "KAZY"
+  # - NAME:          "8. Interval of Available Capacity"                 
+  #   SHEET_KEYWORD: "PMWORKCENTER_KAZY_T_RPT_MY"             
+  #   DS_TABLE:
+  #     - "KAZY"
 
-    VALIDATIONS:
-      - mandatory
-      - length
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
 
-    PRIMARY_KEYS:                  
-      - ["WERKS", "ARBPL", "VERSN_TGT", "DATUB_TGT"]
+  #   PRIMARY_KEYS:                  
+  #     - ["WERKS", "ARBPL", "VERSN_TGT", "DATUB_TGT"]
 
-    FIXED_VALUE_FIELDS: []
+  #   FIXED_VALUE_FIELDS: []
 
-    PROHIBITED_NEWLINE_FIELDS:
-      # Check no \n in the column
-      - "KTEXT_TGT"
+  #   PROHIBITED_NEWLINE_FIELDS:
+  #     # Check no \n in the column
+  #     - "KTEXT_TGT"
 
-    NON_BLANK_OPTIONAL_FIELDS:     [] 
-    NON_BLANK_OPTIONAL_ANY_FIELDS: []
-    SAME_SHEET_REFERENCES:         []
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
 
-    CROSS_SHEET_REFERENCES: 
-      # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
-      - source_columns:       ["WERKS", "ARBPL"]
-        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_TH"
-        target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
+  #   CROSS_SHEET_REFERENCES: 
+  #     # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
+  #       target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
 
-    KDS_REFERENCES:     [] 
-    KDS_PROHIBITED_REFERENCES:     [] 
+  #   KDS_REFERENCES:     [] 
+  #   KDS_PROHIBITED_REFERENCES:     [] 
 
-    CUSTOM_VALIDATIONS:
-      # Check date format YYYYMMDD
-      - check_ad_date:
-          - "DATUB_TGT"
+  #   CUSTOM_VALIDATIONS:
+  #     # Check date format YYYYMMDD
+  #     - check_ad_date:
+  #         - "DATUB_TGT"
   
 
-  - NAME:          "9. STXD SAPscript text file header, STXD SAPscript text file lines"                 
-    SHEET_KEYWORD: "PMWORKCENTER_STXH_STXL_T_RPT_TH"             
-    DS_TABLE:
-      - "STXH"
-      - "STXL"
+  # - NAME:          "9. STXD SAPscript text file header, STXD SAPscript text file lines"                 
+  #   SHEET_KEYWORD: "PMWORKCENTER_STXH_STXL_T_RPT_MY"             
+  #   DS_TABLE:
+  #     - "STXH"
+  #     - "STXL"
 
-    VALIDATIONS:
-      - mandatory
-      - length
+  #   VALIDATIONS:
+  #     - mandatory
+  #     - length
 
-    PRIMARY_KEYS: 
-      - ["WERKS", "ARBPL", "TDID_TGT", "TDNAME_TGT", "TDSPRAS_TGT"]
+  #   PRIMARY_KEYS: 
+  #     - ["WERKS", "ARBPL", "TDID_TGT", "TDNAME_TGT", "TDSPRAS_TGT"]
 
-    FIXED_VALUE_FIELDS: []
-    PROHIBITED_NEWLINE_FIELDS:  []
-    NON_BLANK_OPTIONAL_FIELDS:     [] 
-    NON_BLANK_OPTIONAL_ANY_FIELDS: []
-    SAME_SHEET_REFERENCES:         []
+  #   FIXED_VALUE_FIELDS: []
+  #   PROHIBITED_NEWLINE_FIELDS:  []
+  #   NON_BLANK_OPTIONAL_FIELDS:     [] 
+  #   NON_BLANK_OPTIONAL_ANY_FIELDS: []
+  #   SAME_SHEET_REFERENCES:         []
 
-    CROSS_SHEET_REFERENCES: 
-      # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
-      - source_columns:       ["WERKS", "ARBPL"]
-        target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_TH"
-        target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
+  #   CROSS_SHEET_REFERENCES: 
+  #     # Check Parent-Child in Working Center Header Sheet (Plant + Work Center)
+  #     - source_columns:       ["WERKS", "ARBPL"]
+  #       target_sheet_keyword: "PMWORKCENTER_CRHD_T_RPT_MY"
+  #       target_columns:       ["WERKS_TGT", "ARBPL_TGT"]
 
-    KDS_REFERENCES:     [] 
-    KDS_PROHIBITED_REFERENCES:     [] 
-    CUSTOM_VALIDATIONS: []
+  #   KDS_REFERENCES:     [] 
+  #   KDS_PROHIBITED_REFERENCES:     [] 
+  #   CUSTOM_VALIDATIONS: []

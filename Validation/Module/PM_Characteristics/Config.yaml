@@ -1,12 +1,12 @@
 MODULE: "PM Characteristics"
 
 # ─── File locations (relative to project root) ──────────────────────────────
-TEMPLATE_PATH:        "Module/PM_Characteristics/[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Preload_v3.0.xlsx"   
+TEMPLATE_PATH:        "Module/PM_Characteristics/[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Preload_v4.0.xlsx"   
 DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
 DATA_STANDARD_SHEET:  "PM Characteristics"                         
 MAPPING_PATH:         "Metadata/Mapping/KDS_ALL_MAPPING.xlsx"
 OUTPUT_PATH:          "Output"
-OUTPUT_FILE_NAME:     "[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Data_Cleansing_v3.0.xlsx"                               
+OUTPUT_FILE_NAME:     "[SHANA] MNT-PM-M003_PM Characteristics_TH,MY_Data_Cleansing_Preload Signoff.xlsx"                               
 
 # ─── Ignore configuration ────────────────────────────────────────────────────
 CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"

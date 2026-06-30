@@ -1,0 +1,417 @@
+MODULE: "Functional Location"
+
+# ─── File locations (relative to project root) ──────────────────────────────
+TEMPLATE_PATH:        "Module/Functional_Location/.xlsx"
+DATA_STANDARD_PATH:   "Metadata/DataStandard/DataStandardList.xlsx"
+DATA_STANDARD_SHEET:  "Equipment Master"
+MAPPING_PATH:         "Metadata/Mapping/KDS_FLOC_EQ.xlsx"
+OUTPUT_PATH:          "Output"
+OUTPUT_FILE_NAME:     ".xlsx"
+
+# ─── Ignore configuration ────────────────────────────────────────────────────
+CONFIG_IGNORE_FIELD_SHEET: "Config_Ignore_Field"
+
+IGNORE_COLUMN_SUFFIXES:
+  - "_SRC"
+  - "_DESC"
+  - "SOURCE"
+  - "REMARK"
+
+  # ─── Jobs ────────────────────────────────────────────────────────────────────
+JOBS:
+  - NAME:           "Equipment Master Data (TH)"
+    SHEET_KEYWORD:  "Equipment Master Data (TH)"
+    DS_TABLE:       
+      - "EQUI"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["EQUNR_TGT"]
+
+    FIXED_VALUE_FIELDS: []
+    PROHIBITED_NEWLINE_FIELDS: []
+
+    NON_BLANK_OPTIONAL_FIELDS:
+      # - column: "EQART_TGT"
+      #   condition:
+      #     column: "EQTYP_TGT"
+      #     values: ["C", "G", "M", "P", "Q", "S"]
+
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+    CROSS_SHEET_REFERENCES: []
+
+    KDS_REFERENCES:
+      # - kds_sheet: "THMM_T370T"
+      #   kds_columns:
+      #     - "EQTYP_TGT"
+      #   source_columns:
+      #     - "EQTYP_TGT"
+      #   check_mapping:
+      #     kds_src_columns:         
+      #       - "EQTYP_SRC"
+      #     template_src_columns:      
+      #       - "EQTYP_TGT"
+
+      # - kds_sheet: "THMM_T370K"
+      #   kds_columns:
+      #     - "EQART_TGT"
+      #   source_columns:
+      #     - "EQART_TGT"
+      #   check_mapping:
+      #     kds_src_columns:         
+      #       - "EQART_SRC"
+      #     template_src_columns:      
+      #       - "EQART_SRC"
+
+    KDS_PROHIBITED_REFERENCES: []
+
+    KDS_COMPLETENESS_REFERENCES:
+      # - kds_sheet:      "DCT206"
+      #   kds_field_name: "EQUNR_TGT"       
+      #   source_column:  "EQUNR_TGT"   
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+  - NAME:           "Equipment Short Text (TH)"
+    SHEET_KEYWORD:  "Equipment Short Text (TH)"
+    DS_TABLE:       
+      - "EQKT"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["EQUNR_TGT", "SPRAS_TGT"]
+
+    FIXED_VALUE_FIELDS: []
+
+    PROHIBITED_NEWLINE_FIELDS:
+      # - "EQKTX_TGT"
+
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []
+
+    CROSS_SHEET_REFERENCES:
+      # - source_columns:       ["EQUNR_TGT"]
+      #   target_sheet_keyword: "Equipment Master Data (TH)"
+      #   target_columns:       ["EQUNR_TGT"]
+
+    KDS_REFERENCES: []
+    KDS_PROHIBITED_REFERENCES: []
+
+    KDS_COMPLETENESS_REFERENCES:
+      # - kds_sheet:      "DCT206"
+      #   kds_field_name: "EQUNR_TGT"       
+      #   source_column:  "EQUNR_TGT"
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+  - NAME:         "Equipment Time Seg. (TH)"
+    SHEET_KEYWORD:  "Equipment Time Seg. (TH)"
+    DS_TABLE:       
+      - "EQUZ"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["EQUNR_TGT", "DATBI_TGT", "EQLFN_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      # - column: "EQFNRI_TGT"
+      #   allowed_values:
+      #     - "99991231"
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+
+    CROSS_SHEET_REFERENCES:
+      # - source_columns:       ["EQUNR_TGT"]
+      #   target_sheet_keyword: "Equipment Master Data (TH)"
+      #   target_columns:       ["EQUNR_TGT"]
+
+
+      # - source_columns:       ["ILOAN_TGT"]
+      #   target_sheet_keyword: "PM Obj. & Acc. Assign. (TH)"
+      #   target_columns:       ["ILOAN_TGT"]
+
+    KDS_REFERENCES:
+      # - kds_sheet: "THMM_T352B"
+      #   kds_columns:
+      #     - "RBNR_TGT"
+      #   source_columns:
+      #     - "RBNR_TGT"
+      #   check_mapping:
+      #     kds_src_columns:         
+      #       - "RBNR_SRC"
+      #     template_src_columns:      
+      #       - "RBNR_SRC"
+
+      # - kds_sheet: "THMM_T399I"
+      #   kds_columns:
+      #     - "IWERK_TGT"
+      #   source_columns:
+      #     - "IWERK_TGT"
+      #   check_mapping:
+      #     kds_src_columns:         
+      #       - "IWERK_SRC"
+      #     template_src_columns:      
+      #       - "IWERK_SRC"
+
+      # - kds_sheet: ""
+      #   kds_columns:
+      #     - "IWERK_TGT"
+      #     - "INGRP_TGT"
+      #   source_columns:
+      #     - "IWERK_TGT"
+      #     - "INGRP_TGT"
+            
+
+    KDS_PROHIBITED_REFERENCES: []
+
+    # KDS_COMPLETENESS_REFERENCES:
+    #   - kds_sheet:      "DCT206"
+    #     kds_field_name: "EQUNR_TGT"       
+    #     source_column:  "EQUNR_TGT"   
+
+    START_WITH_FIELDS: []
+      # เช็คมือ
+      # # For Plant 1001 (Arti Plant) cost center have to start with "P"
+      # - column: "KOSTL_TGT"
+      #   prefix:
+      #     - "P"
+      #   condition:
+      #     column: "IWERK_TGT"
+      #     values: ["1001"]
+
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+
+
+
+
+  - NAME:         "PM Obj. & Acc. Assign. (TH)"
+    SHEET_KEYWORD:  "PM Obj. & Acc. Assign. (TH)"
+    DS_TABLE:       
+      - "ILOA"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["ILOAN_TGT"]
+
+    FIXED_VALUE_FIELDS:
+      # - column: "ABCKZI_TGT"
+      #   allowed_values:
+      #     - "D"
+
+      # - column: "BUKRSI_TGT"
+      #   allowed_values:
+      #     - "H"  
+      
+      # - column: "KOKRSI_TGT"
+      #   allowed_values:
+      #     - "H"
+      
+      # - column: "KOSTLI_TGT"
+      #   allowed_values:
+      #     - "D"
+      
+      # - column: "STORTI_TGT"
+      #   allowed_values:
+      #     - "H"
+      
+      # - column: "SWERKI_TGT"
+      #   allowed_values:
+      #     - "H"
+      
+      # - column: "BEBERI_TGT"
+      #   allowed_values:
+      #     - "H"
+      
+      # - column: "MSGRPI_TGT"
+      #   allowed_values:
+      #     - "D"
+      
+      # - column: "EQFNRI_TGT"
+      #   allowed_values:
+      #     - "H"
+      
+      # - column: "PROIDI_TGT"
+      #   allowed_values:
+      #     - "D"
+      
+      # - column: "KOSTL_TGT"
+      #   allowed_values:
+      #     - ""
+
+    PROHIBITED_NEWLINE_FIELDS: []
+
+    NON_BLANK_OPTIONAL_FIELDS:
+      # - "TPLNR_TGT"
+
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+
+    CROSS_SHEET_REFERENCES:
+      # - source_columns:       ["EQUNR_TGT"]
+      #   target_sheet_keyword: "Equipment Master Data (TH)"
+      #   target_columns:       ["EQUNR_TGT"]
+
+      # - source_columns:       ["EQFNR_TGT"]
+      #   target_sheet_keyword: "Equipment Master Data (TH)"
+      #   target_columns:       ["EQUNR_TGT"]
+
+    KDS_REFERENCES:
+      # - kds_sheet: "DCT205"
+      #   kds_columns:
+      #     - "TPLNR"
+      #   source_columns:
+      #     - "TPLNR_TGT"
+      
+      # - kds_sheet: "DCT206"
+      #   kds_columns:
+      #     - "SWERK_BEBER"
+      #     - "BEBER"
+      #   source_columns:
+      #     - "SWERK_TGT"
+      #     - "BEBER_TGT"
+      
+      # - kds_sheet: "DCT206"
+      #   kds_columns:
+      #     - "PROID_TGT"
+      #   source_columns:
+      #     - "PROID_TGT"
+      
+      # - kds_sheet: "DCT206"
+      #   kds_columns:
+      #     - "MSGRP_TGT"
+      #   source_columns:
+      #     - "MSGRP_TGT"
+
+    KDS_PROHIBITED_REFERENCES:
+      # - kds_sheet: "Unassignable_FL"
+      #   kds_columns: ["TPLNR_TGT_TH"]
+      #   source_columns: ["TPLNR_TGT"]
+
+    KDS_COMPLETENESS_REFERENCES:
+      # - kds_sheet:      "DCT206"
+      #   kds_field_name: "EQUNR_TGT"       
+      #   source_column:  "EQUNR_TGT"   
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+
+  - NAME:         "Individual Object Status (TH)"
+    SHEET_KEYWORD:  "Individual Object Status (TH)"
+    DS_TABLE:       
+      - "JEST"              
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["OBJNR_TGT", "STAT_TGT"]
+
+    FIXED_VALUE_FIELDS:
+    
+      - column: "INACT_TGT"
+        allowed_values:
+          - ""
+
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["EQUNR_TGT"]
+        target_sheet_keyword: "Equipment Master Data (TH)"
+        target_columns:       ["EQUNR_TGT"]
+
+    KDS_REFERENCES: []
+    KDS_PROHIBITED_REFERENCES: []
+
+    KDS_COMPLETENESS_REFERENCES:
+      - kds_sheet:      "DCT206"
+        kds_field_name: "EQUNR_TGT"       
+        source_column:  "EQUNR_TGT"   
+
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
+
+
+
+
+
+
+  - NAME:         "Equipment Long Text (TH)"
+    SHEET_KEYWORD:  "Equipment Long Text (TH)"
+    DS_TABLE:       
+      - "STXH"
+      - "STXL"               
+
+    VALIDATIONS:
+      - mandatory
+      - length
+
+    PRIMARY_KEYS:
+      - ["OBJNR_TGT", "STAT_TGT"]
+
+    FIXED_VALUE_FIELDS:
+    PROHIBITED_NEWLINE_FIELDS: []
+    NON_BLANK_OPTIONAL_FIELDS: []
+    NON_BLANK_OPTIONAL_ANY_FIELDS: []
+    SAME_SHEET_REFERENCES: []   
+
+    CROSS_SHEET_REFERENCES:
+      - source_columns:       ["EQUNR"]
+        target_sheet_keyword: "Equipment Master Data (TH)"
+        target_columns:       ["EQUNR_TGT"]
+
+    KDS_REFERENCES: []
+    KDS_PROHIBITED_REFERENCES: []
+    KDS_COMPLETENESS_REFERENCES: []
+    START_WITH_FIELDS: []
+    CUSTOM_VALIDATIONS: []
